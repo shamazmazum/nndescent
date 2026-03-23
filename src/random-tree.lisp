@@ -14,10 +14,10 @@
   (points list))
 
 (serapeum:defconstructor node-inner
-  (point     t)
-  (direction t)
-  (plus      node)
-  (minus     node))
+  (p1    t)
+  (p2    t)
+  (plus  node)
+  (minus node))
 
 (serapeum:-> leafp (node)
              (values boolean &optional))
@@ -65,27 +65,25 @@
         (node-leaf ps)
         (multiple-value-bind (p1 p2)
             (random-elements ps length)
-          (let ((d (p:op ops p1 p2 1 -1))
-                (p (p:op ops p1 p2 1/2 1/2)))
-            (labels ((%go (plus minus xs)
-                       (if (null xs)
-                           (values plus minus)
-                           (let ((%p (car xs)))
-                             (if (p:plusp ops p d %p)
-                                 (%go (cons %p plus) minus (cdr xs))
-                                 (%go plus (cons %p minus) (cdr xs)))))))
-              (multiple-value-bind (plus minus)
-                  (%go nil nil ps)
-                (node-inner
-                 p d
-                 (make-random-tree ops plus  k)
-                 (make-random-tree ops minus k)))))))))
+          (labels ((%go (plus minus xs)
+                     (if (null xs)
+                         (values plus minus)
+                         (let ((p (car xs)))
+                           (if (p:plusp ops p p1 p2)
+                               (%go (cons p plus) minus (cdr xs))
+                               (%go plus (cons p minus) (cdr xs)))))))
+            (multiple-value-bind (plus minus)
+                (%go nil nil ps)
+              (node-inner
+               p1 p2
+               (make-random-tree ops plus  k)
+               (make-random-tree ops minus k))))))))
 
 (serapeum:-> find-leaf (p:operations node t)
              (values node-leaf &optional))
 (defun find-leaf (ops tree p)
   (if (leafp tree) tree
-      (if (p:plusp ops (node-inner-point tree) (node-inner-direction tree) p)
+      (if (p:plusp ops p (node-inner-p1 tree) (node-inner-p2 tree))
           (find-leaf ops (node-inner-plus  tree) p)
           (find-leaf ops (node-inner-minus tree) p))))
 

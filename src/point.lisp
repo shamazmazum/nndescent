@@ -2,7 +2,7 @@
   (:use #:cl)
   (:shadow #:plusp)
   (:export #:operations
-           #:op #:plusp #:dist))
+           #:op #:plusp #:plus2p #:dist))
 (in-package :nndescent/point)
 
 (deftype dist  () '(serapeum:-> (t t)           (values (real 0) &optional)))
@@ -17,8 +17,8 @@
 (serapeum:-> plusp (operations t t t)
              (values boolean &optional))
 (declaim (inline plusp))
-(defun plusp (ops center direction point)
-  (funcall (operations-plusp ops) center direction point))
+(defun plusp (ops p p1 p2)
+  (funcall (operations-plusp ops) p p1 p2))
 
 (serapeum:-> op (operations t t real real)
              (values t &optional))

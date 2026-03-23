@@ -9,13 +9,17 @@
                     (simple-array double-float (*))
                     (simple-array double-float (*)))
              (values boolean &optional))
-(defun plusp (center direction point)
+(defun plusp (p p1 p2)
   (declare (optimize (speed 3)))
-  (let ((n (length center)))
-    (assert (= n (length direction) (length point)))
+  (let ((n (length p)))
+    (assert (= n (length p1) (length p2)))
     (cl:plusp
      (loop for i below n
-           sum (* (- (aref point i) (aref center i)) (aref direction i))
+           for %p  = (aref p  i)
+           for %p1 = (aref p1 i)
+           for %p2 = (aref p2 i)
+           sum (* (- %p (/ (+ %p1 %p2) 2))
+                  (- %p1 %p2))
            double-float))))
 
 (serapeum:-> op ((simple-array double-float (*))
