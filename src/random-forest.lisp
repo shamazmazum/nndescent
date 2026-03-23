@@ -6,7 +6,6 @@
   (:export #:make-random-forest))
 (in-package :nndescent/random-forest)
 
-;; TODO: parallelize
 (serapeum:-> make-random-forest (p:operations list (integer 1) (integer 1))
              (values list &optional))
 (defun make-random-forest (ops ps k n)
