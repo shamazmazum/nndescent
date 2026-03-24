@@ -14,7 +14,8 @@
                :nndescent/euclidean
                :nndescent/random-tree
                :nndescent/pqueue
-               :nndescent/random-forest)
+               :nndescent/random-forest
+               :nndescent/naive)
   :in-order-to ((test-op (load-op "nndescent/tests")))
   :perform (test-op (op system)
                       (declare (ignore op system))

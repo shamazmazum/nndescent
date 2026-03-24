@@ -1,5 +1,17 @@
 (in-package :nndescent/tests)
 
+(defun diversion-index (xs ys)
+  (labels ((%go (n xs ys)
+             (cond
+               ((null xs) n)
+               ((null ys) n)
+               ((equalp
+                 (car xs)
+                 (car ys))
+                (%go (1+ n) (cdr xs) (cdr ys)))
+               (t n))))
+    (%go 0 xs ys)))
+
 (defun gen-point (n c)
   (lambda ()
     (make-array n
@@ -32,3 +44,16 @@
       (loop for p in points
             for neighbors = (rt:neighbor-points e:*euclidean-ops* tree p)
             do (is (member p neighbors :test #'eq))))))
+
+(test approximation
+  (for-all ((ps (gen-points
+                 (gen-integer :min 1000 :max 5000)
+                 (gen-point 3 1d0))))
+    (let ((approx (coerce (rf:initial-approximation e:*euclidean-ops* ps 30) 'list))
+          (exact  (n:knn #'e:dist ps 30)))
+      (is (< (loop for a in approx
+                   for e in exact
+                   count (< (diversion-index (q:to-list a)
+                                             (q:to-list e))
+                            15))
+             (* (length ps) 0.1))))))

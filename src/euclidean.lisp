@@ -2,7 +2,7 @@
   (:use #:cl)
   (:shadow #:plusp)
   (:local-nicknames (#:p #:nndescent/point))
-  (:export #:*euclidean-ops*))
+  (:export #:*euclidean-ops* #:dist))
 (in-package :nndescent/euclidean)
 
 (serapeum:-> plusp ((simple-array double-float (*))

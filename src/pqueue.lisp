@@ -7,7 +7,7 @@
   (:local-nicknames (#:a #:alexandria))
   (:export #:queue #:make-queue #:copy-queue
            #:enqueue #:enqueue-limited #:in-queue-p
-           #:dequeue #:peek #:size #:trim #:map #:do-queue
+           #:dequeue #:peek #:size #:trim #:map #:do-queue #:to-list
            #:queue-size-limit-reached
            #:queue-size-limit-reached-queue #:queue-size-limit-reached-object))
 (in-package #:nndescent/pqueue)
@@ -233,6 +233,14 @@
   (dotimes (i (%size queue))
     (funcall function (aref (%data-vector queue) i)))
   (values))
+
+(serapeum:-> to-list (queue)
+             (values list &optional))
+(defun to-list (q)
+  (let ((q (copy-queue q)) acc)
+    (loop for obj = (dequeue q)
+          while obj do (push obj acc))
+    acc))
 
 (defmacro do-queue ((object queue &optional result) &body body)
   (multiple-value-bind (forms declarations) (a:parse-body body)

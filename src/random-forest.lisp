@@ -4,8 +4,7 @@
                     (#:p  #:nndescent/point)
                     (#:rt #:nndescent/random-tree))
   (:export #:make-random-forest
-           #:initial-approximation
-           #:dequeue-approximation))
+           #:initial-approximation))
 (in-package :nndescent/random-forest)
 
 (serapeum:-> make-random-forest (p:operations list (integer 1) (integer 1))
@@ -19,7 +18,7 @@
              (values (simple-array q:queue (*)) &optional))
 (defun initial-approximation (ops ps k)
   (declare (optimize (speed 3)))
-  (let ((forest (make-random-forest ops ps k 5)))
+  (let ((forest (make-random-forest ops ps (floor (* k 1.5)) 10)))
     (flet ((make-queue (p)
              (let ((q (q:make-queue (1+ k))))
                (loop for tree in forest
@@ -35,16 +34,3 @@
         (make-array (length ps)
                     :element-type 'q:queue
                     :initial-contents (mapcar #'lparallel:force qs))))))
-
-(serapeum:-> queue->list (q:queue)
-             (values list &optional))
-(defun queue->list (q)
-  (let ((q (q:copy-queue q)) acc)
-    (loop for obj = (q:dequeue q)
-          while obj do (push obj acc))
-    acc))
-
-(serapeum:-> dequeue-approximation ((simple-array q:queue (*)))
-             (values simple-vector &optional))
-(defun dequeue-approximation (approx)
-  (map 'vector #'queue->list approx))
