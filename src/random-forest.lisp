@@ -15,7 +15,7 @@
                 collect (lparallel:future (rt:make-random-tree ops ps k)))))
 
 (serapeum:-> initial-approximation (p:operations list (integer 1))
-             (values (simple-array q:queue (*)) &optional))
+             (values list &optional))
 (defun initial-approximation (ops ps k)
   (declare (optimize (speed 3)))
   (let ((forest (make-random-forest ops ps (floor (* k 1.5)) 10)))
@@ -31,6 +31,4 @@
                q)))
       (let ((qs (loop for p in ps
                       collect (let ((p p)) (lparallel:future (make-queue p))))))
-        (make-array (length ps)
-                    :element-type 'q:queue
-                    :initial-contents (mapcar #'lparallel:force qs))))))
+        (mapcar #'lparallel:force qs)))))

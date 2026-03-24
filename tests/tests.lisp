@@ -49,7 +49,7 @@
   (for-all ((ps (gen-points
                  (gen-integer :min 1000 :max 5000)
                  (gen-point 3 1d0))))
-    (let ((approx (coerce (rf:initial-approximation e:*euclidean-ops* ps 30) 'list))
+    (let ((approx (rf:initial-approximation e:*euclidean-ops* ps 30))
           (exact  (n:knn #'e:dist ps 30)))
       (is (< (loop for a in approx
                    for e in exact
