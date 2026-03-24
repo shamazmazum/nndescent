@@ -21,7 +21,7 @@
   (declare (optimize (speed 3)))
   (let ((forest (make-random-forest ops ps k 5)))
     (flet ((make-queue (p)
-             (let ((q (q:make-queue k)))
+             (let ((q (q:make-queue (1+ k))))
                (loop for tree in forest
                      for neighbors = (rt:neighbor-points ops tree p) do
                        (loop for %p in neighbors
@@ -30,15 +30,11 @@
                                         (q:in-queue-p %p q :test #'eq))
                                do (q:enqueue-limited q %p (- dist) k)))
                q)))
-      ;; I don't know why, this thing gives wrong results when parallelized
-      #+nil
-      (let ((qs (loop for p in ps collect (lparallel:future (make-queue p)))))
+      (let ((qs (loop for p in ps
+                      collect (let ((p p)) (lparallel:future (make-queue p))))))
         (make-array (length ps)
                     :element-type 'q:queue
-                    :initial-contents (mapcar #'lparallel:force qs)))
-      (make-array (length ps)
-                  :element-type 'q:queue
-                  :initial-contents (loop for p in ps collect (make-queue p))))))
+                    :initial-contents (mapcar #'lparallel:force qs))))))
 
 (serapeum:-> queue->list (q:queue)
              (values list &optional))
