@@ -6,7 +6,8 @@
   (:shadow #:map)
   (:local-nicknames (#:a #:alexandria))
   (:export #:queue #:make-queue #:copy-queue
-           #:enqueue #:enqueue-limited #:dequeue #:peek #:size #:trim #:map #:do-queue
+           #:enqueue #:enqueue-limited #:in-queue-p
+           #:dequeue #:peek #:size #:trim #:map #:do-queue
            #:queue-size-limit-reached
            #:queue-size-limit-reached-queue #:queue-size-limit-reached-object))
 (in-package #:nndescent/pqueue)
@@ -220,6 +221,12 @@
     (setf (%data-vector queue) (adjust-array* (%data-vector queue) size)
           (%prio-vector queue) (adjust-array* (%prio-vector queue) size)))
   (values))
+
+(serapeum:-> in-queue-p (t queue &key (:test (serapeum:-> (t t) (values boolean &optional))))
+             (values t &optional))
+(declaim (inline in-queue-p))
+(defun in-queue-p (object queue &key (test #'eql))
+  (find object (%data-vector queue) :test test :end (%size queue)))
 
 (serapeum:-> map (queue (serapeum:-> (t) t)) (values &optional))
 (defun map (queue function)
