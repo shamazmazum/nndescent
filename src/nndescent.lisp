@@ -4,6 +4,7 @@
                     (#:p  #:nndescent/point)
                     (#:rf #:nndescent/random-forest))
   (:export #:random-forest-approximation
+           #:nndescent!
            #:reverse-map)) ; for testing
 (in-package :nndescent/nndescent)
 
@@ -64,3 +65,15 @@
                            (enqueue! p2 p1 priority)))))
        approx))
     updates))
+
+(serapeum:-> nndescent! (p:dist hash-table (integer 1) &key
+                         (:max-iterations (integer 1))
+                         (:min-updates    (integer 0)))
+             (values hash-table &optional))
+(defun nndescent! (dist approx k &key (max-iterations 5) (min-updates 0))
+  (labels ((%go (n)
+             (if (zerop n) approx
+                 (let ((updates (nndescent-update! dist approx k)))
+                   (if (<= updates min-updates) approx
+                       (%go (1- n)))))))
+    (%go max-iterations)))
