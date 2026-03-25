@@ -26,7 +26,7 @@
                        (loop for %p in neighbors
                              for dist = (p:dist ops p %p)
                              unless (or (eq p %p)
-                                        (q:in-queue-p %p q :test #'eq))
+                                        (q:in-queue-p %p q))
                                do (q:enqueue-limited! q %p (- dist) k)))
                q)))
       (let ((qs (loop for p in ps

@@ -47,7 +47,7 @@
         updates)
     (flet ((enqueue! (p1 p2 prio)
              (let ((q (gethash p1 approx)))
-               (and (not (q:in-queue-p p2 q :test #'eq))
+               (and (not (q:in-queue-p p2 q))
                     (q:enqueue-limited! q p2 prio k)))))
       (maphash
        (lambda (p q)
