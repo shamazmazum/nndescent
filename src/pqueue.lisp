@@ -7,7 +7,8 @@
   (:local-nicknames (#:a #:alexandria))
   (:export #:queue #:make-queue #:copy-queue
            #:enqueue! #:enqueue-limited! #:in-queue-p
-           #:dequeue! #:peek #:size #:trim! #:map #:do-queue #:to-list
+           #:dequeue! #:peek #:size #:trim! #:map #:do-queue
+           #:to-list #:to-sorted-list
            #:queue-size-limit-reached
            #:queue-size-limit-reached-queue #:queue-size-limit-reached-object))
 (in-package #:nndescent/pqueue)
@@ -194,13 +195,25 @@
 
 (serapeum:-> enqueue-limited! (queue t prio-type a:array-length) (values &optional))
 (defun enqueue-limited! (queue object priority limit)
-  (enqueue! queue object priority)
-  (when (> (%size queue) limit)
-    (dequeue! queue))
+  (cond
+    ((< (%size queue) limit)
+     (enqueue! queue object priority))
+    ((> priority (aref (%prio-vector queue) 0))
+     (enqueue! queue object priority)
+     (dequeue! queue)))
   (values))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Introspection and maintenance
+
+(defmacro do-queue ((object queue &optional result) &body body)
+  (multiple-value-bind (forms declarations) (a:parse-body body)
+    (a:with-gensyms (i)
+      (a:once-only (queue)
+        `(dotimes (,i (%size ,queue) ,result)
+           (let ((,object (aref (%data-vector ,queue) ,i)))
+             ,@declarations
+             (tagbody ,@forms)))))))
 
 (serapeum:-> peek (queue) (values t boolean &optional))
 (declaim (inline peek))
@@ -234,22 +247,21 @@
     (funcall function (aref (%data-vector queue) i)))
   (values))
 
-(serapeum:-> to-list (queue)
+(serapeum:-> to-sorted-list (queue)
              (values list &optional))
-(defun to-list (q)
+(defun to-sorted-list (q)
   (let ((q (copy-queue q)) acc)
     (loop for obj = (dequeue! q)
           while obj do (push obj acc))
     acc))
 
-(defmacro do-queue ((object queue &optional result) &body body)
-  (multiple-value-bind (forms declarations) (a:parse-body body)
-    (a:with-gensyms (i)
-      (a:once-only (queue)
-        `(dotimes (,i (%size ,queue) ,result)
-           (let ((,object (aref (%data-vector ,queue) ,i)))
-             ,@declarations
-             (tagbody ,@forms)))))))
+(serapeum:-> to-list (queue)
+             (values list &optional))
+(defun to-list (q)
+  (let (acc)
+    (do-queue (x q)
+      (push x acc))
+    acc))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Conditions
