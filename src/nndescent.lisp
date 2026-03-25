@@ -31,14 +31,12 @@
      map)
     result))
 
-(serapeum:-> join-sets (list list)
+(serapeum:-> join! (list list)
              (values list &optional))
-(defun join-sets (s1 s2)
+(defun join! (s1 s2)
   (declare (optimize (speed 3)))
-  (let (s)
-    (loop for x in s1 do (pushnew x s :test #'eq))
-    (loop for x in s2 do (pushnew x s :test #'eq))
-    s))
+  (loop for x in s2 do (pushnew x s1 :test #'eq))
+  s1)
 
 (serapeum:-> nndescent-update! (p:dist hash-table (integer 1))
              (values (integer 0) &optional))
@@ -55,7 +53,7 @@
           (lparallel:future
             (let* ((forward (q:to-list q))
                    (reverse (gethash p reverse))
-                   (ps (join-sets forward reverse)))
+                   (ps (join! forward reverse)))
               (loop for rest on ps
                     for p1 = (car rest) sum
                       (loop for p2 in (cdr rest)
