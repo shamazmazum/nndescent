@@ -6,8 +6,8 @@
   (:shadow #:map)
   (:local-nicknames (#:a #:alexandria))
   (:export #:queue #:make-queue #:copy-queue
-           #:enqueue #:enqueue-limited #:in-queue-p
-           #:dequeue #:peek #:size #:trim #:map #:do-queue #:to-list
+           #:enqueue! #:enqueue-limited! #:in-queue-p
+           #:dequeue! #:peek #:size #:trim! #:map #:do-queue #:to-list
            #:queue-size-limit-reached
            #:queue-size-limit-reached-queue #:queue-size-limit-reached-object))
 (in-package #:nndescent/pqueue)
@@ -89,65 +89,12 @@
        ,new-array*)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; Enqueueing
-
-(serapeum:-> heapify-upwards (data-vector-type prio-vector-type a:array-length)
-             (values &optional))
-(declaim (inline heapify-upwards))
-(defun heapify-upwards (data-vector prio-vector index)
-  (do ((child-index index parent-index)
-       (parent-index (ash (1- index) -1) (ash (1- parent-index) -1)))
-      ((zerop child-index))
-    (let ((child-priority (aref prio-vector child-index))
-          (parent-priority (aref prio-vector parent-index)))
-      (cond ((< child-priority parent-priority)
-             (rotatef (aref prio-vector parent-index)
-                      (aref prio-vector child-index))
-             (rotatef (aref data-vector parent-index)
-                      (aref data-vector child-index)))
-            (t (return)))))
-  (values))
-
-(serapeum:-> enqueue (queue t prio-type) (values &optional))
-(defun enqueue (queue object priority)
-  (declare (optimize (speed 3)))
-  (symbol-macrolet ((data-vector (%data-vector queue))
-                    (prio-vector (%prio-vector queue)))
-    (let ((size (%size queue))
-          (extension-factor (%extension-factor queue))
-          (length (array-total-size data-vector)))
-      (when (>= size length)
-        (unless (%extend-queue-p queue)
-          (error 'queue-size-limit-reached :queue queue :element object))
-        (let ((new-length (max 1 (mod (* length extension-factor)
-                                      (ash 1 64)))))
-          (declare (type a:array-length new-length))
-          (when (<= new-length length)
-            (error "Integer overflow while resizing array: new-length ~D is ~
-                    smaller than old length ~D" new-length length))
-          (setf data-vector (adjust-array* data-vector new-length)
-                prio-vector (adjust-array* prio-vector new-length))))
-      (setf (aref data-vector size) object
-            (aref prio-vector size) priority)
-      (heapify-upwards data-vector prio-vector (%size queue))
-      (incf (%size queue))
-      (values))))
-
-(serapeum:-> enqueue-limited (queue t prio-type a:array-length) (values &optional))
-(defun enqueue-limited (queue object priority limit)
-  (enqueue queue object priority)
-  (when (> (%size queue) limit)
-    (dequeue queue))
-  (values))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Dequeueing
 
-(serapeum:-> heapify-downwards (data-vector-type prio-vector-type a:array-index)
+(serapeum:-> heapify-downwards! (data-vector-type prio-vector-type a:array-index)
              (values &optional))
-(declaim (inline heapify-downwards))
-(defun heapify-downwards (data-vector prio-vector size)
+(declaim (inline heapify-downwards!))
+(defun heapify-downwards! (data-vector prio-vector size)
   (let ((parent-index 0))
     (loop
       (let* ((left-index (+ (* parent-index 2) 1))
@@ -184,8 +131,8 @@
               (swap-left))))))
   (values))
 
-(serapeum:-> dequeue (queue) (values t boolean &optional))
-(defun dequeue (queue)
+(serapeum:-> dequeue! (queue) (values t boolean &optional))
+(defun dequeue! (queue)
   (declare (optimize (speed 3)))
   (if (zerop (%size queue))
       (values nil nil)
@@ -197,7 +144,60 @@
                 (old-prio (aref prio-vector (%size queue))))
             (setf (aref data-vector 0) old-data
                   (aref prio-vector 0) old-prio))
-          (heapify-downwards data-vector prio-vector (%size queue))))))
+          (heapify-downwards! data-vector prio-vector (%size queue))))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Enqueueing
+
+(serapeum:-> heapify-upwards! (data-vector-type prio-vector-type a:array-length)
+             (values &optional))
+(declaim (inline heapify-upwards!))
+(defun heapify-upwards! (data-vector prio-vector index)
+  (do ((child-index index parent-index)
+       (parent-index (ash (1- index) -1) (ash (1- parent-index) -1)))
+      ((zerop child-index))
+    (let ((child-priority (aref prio-vector child-index))
+          (parent-priority (aref prio-vector parent-index)))
+      (cond ((< child-priority parent-priority)
+             (rotatef (aref prio-vector parent-index)
+                      (aref prio-vector child-index))
+             (rotatef (aref data-vector parent-index)
+                      (aref data-vector child-index)))
+            (t (return)))))
+  (values))
+
+(serapeum:-> enqueue! (queue t prio-type) (values &optional))
+(defun enqueue! (queue object priority)
+  (declare (optimize (speed 3)))
+  (symbol-macrolet ((data-vector (%data-vector queue))
+                    (prio-vector (%prio-vector queue)))
+    (let ((size (%size queue))
+          (extension-factor (%extension-factor queue))
+          (length (array-total-size data-vector)))
+      (when (>= size length)
+        (unless (%extend-queue-p queue)
+          (error 'queue-size-limit-reached :queue queue :element object))
+        (let ((new-length (max 1 (mod (* length extension-factor)
+                                      (ash 1 64)))))
+          (declare (type a:array-length new-length))
+          (when (<= new-length length)
+            (error "Integer overflow while resizing array: new-length ~D is ~
+                    smaller than old length ~D" new-length length))
+          (setf data-vector (adjust-array* data-vector new-length)
+                prio-vector (adjust-array* prio-vector new-length))))
+      (setf (aref data-vector size) object
+            (aref prio-vector size) priority)
+      (heapify-upwards! data-vector prio-vector (%size queue))
+      (incf (%size queue))
+      (values))))
+
+(serapeum:-> enqueue-limited! (queue t prio-type a:array-length) (values &optional))
+(defun enqueue-limited! (queue object priority limit)
+  (enqueue! queue object priority)
+  (when (> (%size queue) limit)
+    (dequeue! queue))
+  (values))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Introspection and maintenance
@@ -214,9 +214,9 @@
 (defun size (queue)
   (%size queue))
 
-(serapeum:-> trim (queue) (values &optional))
-(declaim (inline trim))
-(defun trim (queue)
+(serapeum:-> trim! (queue) (values &optional))
+(declaim (inline trim!))
+(defun trim! (queue)
   (let ((size (%size queue)))
     (setf (%data-vector queue) (adjust-array* (%data-vector queue) size)
           (%prio-vector queue) (adjust-array* (%prio-vector queue) size)))
@@ -238,7 +238,7 @@
              (values list &optional))
 (defun to-list (q)
   (let ((q (copy-queue q)) acc)
-    (loop for obj = (dequeue q)
+    (loop for obj = (dequeue! q)
           while obj do (push obj acc))
     acc))
 

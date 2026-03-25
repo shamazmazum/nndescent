@@ -27,7 +27,7 @@
                              for dist = (p:dist ops p %p)
                              unless (or (eq p %p)
                                         (q:in-queue-p %p q :test #'eq))
-                               do (q:enqueue-limited q %p (- dist) k)))
+                               do (q:enqueue-limited! q %p (- dist) k)))
                q)))
       (let ((qs (loop for p in ps
                       collect (let ((p p)) (lparallel:future (make-queue p))))))
