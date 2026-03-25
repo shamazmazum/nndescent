@@ -193,15 +193,17 @@
       (incf (%size queue))
       (values))))
 
-(serapeum:-> enqueue-limited! (queue t prio-type a:array-length) (values &optional))
+(serapeum:-> enqueue-limited! (queue t prio-type a:array-length)
+             (values boolean &optional))
 (defun enqueue-limited! (queue object priority limit)
   (cond
     ((< (%size queue) limit)
-     (enqueue! queue object priority))
+     (enqueue! queue object priority)
+     t)
     ((> priority (aref (%prio-vector queue) 0))
      (enqueue! queue object priority)
-     (dequeue! queue)))
-  (values))
+     (dequeue! queue)
+     t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Introspection and maintenance

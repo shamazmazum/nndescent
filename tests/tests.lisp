@@ -30,7 +30,7 @@
                    (let ((status (run suite)))
                      (explain! status)
                      (results-status status)))
-                 '(random-tree))))
+                 '(random-tree nndescent))))
 
 (def-suite random-tree :description "Test random trees")
 (def-suite nndescent   :description "Test nndescent algorithm")
@@ -54,8 +54,8 @@
           (exact  (n:knn #'e:dist ps 30)))
       (is (< (loop for a in approx
                    for e in exact
-                   count (< (diversion-index (q:to-list a)
-                                             (q:to-list e))
+                   count (< (diversion-index (q:to-sorted-list a)
+                                             (q:to-sorted-list e))
                             15))
              (* (length ps) 0.1))))))
 

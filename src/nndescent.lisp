@@ -29,3 +29,38 @@
          (push k (gethash v result nil))))
      map)
     result))
+
+(serapeum:-> join-sets (list list)
+             (values list &optional))
+(defun join-sets (s1 s2)
+  (declare (optimize (speed 3)))
+  (let (s)
+    (loop for x in s1 do (pushnew x s :test #'eq))
+    (loop for x in s2 do (pushnew x s :test #'eq))
+    s))
+
+(serapeum:-> nndescent-update! (p:dist hash-table (integer 1))
+             (values (integer 0) &optional))
+(defun nndescent-update! (dist approx k)
+  (let ((reverse (reverse-map approx))
+        (updates 0))
+    (flet ((enqueue! (p1 p2 prio)
+             (let ((q (gethash p1 approx)))
+               (when (and (not (q:in-queue-p p2 q :test #'eq))
+                          (q:enqueue-limited! q p2 prio k))
+                 (incf updates)))))
+      (maphash
+       (lambda (p q)
+         (let* ((forward (q:to-list q))
+                (reverse (gethash p reverse))
+                (ps (join-sets forward reverse)))
+           (loop for rest on ps
+                 for p1 = (car rest) do
+                   (loop for p2 in (cdr rest)
+                         for priority = (- (funcall dist p1 p2)) do
+                           ;; Check if p2 is a neighbor of p1
+                           (enqueue! p1 p2 priority)
+                           ;; And vice-versa
+                           (enqueue! p2 p1 priority)))))
+       approx))
+    updates))
