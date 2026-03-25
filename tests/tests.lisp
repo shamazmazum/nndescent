@@ -33,6 +33,7 @@
                  '(random-tree))))
 
 (def-suite random-tree :description "Test random trees")
+(def-suite nndescent   :description "Test nndescent algorithm")
 
 (in-suite random-tree)
 (test neighbors
@@ -57,3 +58,20 @@
                                              (q:to-list e))
                             15))
              (* (length ps) 0.1))))))
+
+(in-suite nndescent)
+
+;; This test is for me. It allows deeper understanding of what is
+;; going on.
+(test reverse-map
+  (for-all ((ps (gen-points
+                 (gen-integer :min 1000 :max 5000)
+                 (gen-point 3 1d0))))
+    (let* ((approx (nn:random-forest-approximation e:*euclidean-ops* ps 30))
+           (reverse (nn:reverse-map approx)))
+      (maphash
+       (lambda (k v)
+         (declare (ignore k))
+         ;; Check there is no duplicates
+         (is (equalp v (remove-duplicates v :test #'eq))))
+       reverse))))
