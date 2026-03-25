@@ -54,9 +54,7 @@
           (exact  (n:knn #'e:dist ps 30)))
       (is (< (loop for a in approx
                    for e in exact
-                   count (< (diversion-index (q:to-sorted-list a)
-                                             (q:to-sorted-list e))
-                            15))
+                   count (< (diversion-index (q:to-sorted-list a) e) 15))
              (* (length ps) 0.1))))))
 
 (in-suite nndescent)
@@ -75,3 +73,17 @@
          ;; Check there is no duplicates
          (is (equalp v (remove-duplicates v :test #'eq))))
        reverse))))
+
+(test nndescent-improvement
+  (for-all ((ps (gen-points
+                 (gen-integer :min 1000 :max 5000)
+                 (gen-point 3 1d0))))
+    (let ((approx (nn:nndescent!
+                   ps #'e:dist
+                   (nn:random-forest-approximation e:*euclidean-ops* ps 30)
+                   30))
+          (exact  (n:knn #'e:dist ps 30)))
+      (is (< (loop for a in approx
+                   for e in exact
+                   count (not (equalp a e)))
+             (* (length ps) 0.02))))))

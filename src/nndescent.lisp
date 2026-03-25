@@ -73,14 +73,19 @@
      updates
      :initial-value 0)))
 
-(serapeum:-> nndescent! (p:dist hash-table (integer 1) &key
+(serapeum:-> nndescent! (list p:dist hash-table (integer 1) &key
                          (:max-iterations (integer 1))
                          (:min-updates    (integer 0)))
-             (values hash-table &optional))
-(defun nndescent! (dist approx k &key (max-iterations 5) (min-updates 0))
+             (values list &optional))
+(defun nndescent! (ps dist approx k &key (max-iterations 5) (min-updates 0))
   (labels ((%go (n)
              (if (zerop n) approx
                  (let ((updates (nndescent-update! dist approx k)))
                    (if (<= updates min-updates) approx
                        (%go (1- n)))))))
-    (%go max-iterations)))
+    (%go max-iterations))
+  (mapcar
+   (lambda (p)
+     (q:to-sorted-list
+      (gethash p approx)))
+   ps))
