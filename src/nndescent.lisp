@@ -44,27 +44,34 @@
              (values (integer 0) &optional))
 (defun nndescent-update! (dist approx k)
   (let ((reverse (reverse-map approx))
-        (updates 0))
+        updates)
     (flet ((enqueue! (p1 p2 prio)
              (let ((q (gethash p1 approx)))
-               (when (and (not (q:in-queue-p p2 q :test #'eq))
-                          (q:enqueue-limited! q p2 prio k))
-                 (incf updates)))))
+               (and (not (q:in-queue-p p2 q :test #'eq))
+                    (q:enqueue-limited! q p2 prio k)))))
       (maphash
        (lambda (p q)
-         (let* ((forward (q:to-list q))
-                (reverse (gethash p reverse))
-                (ps (join-sets forward reverse)))
-           (loop for rest on ps
-                 for p1 = (car rest) do
-                   (loop for p2 in (cdr rest)
-                         for priority = (- (funcall dist p1 p2)) do
-                           ;; Check if p2 is a neighbor of p1
-                           (enqueue! p1 p2 priority)
-                           ;; And vice-versa
-                           (enqueue! p2 p1 priority)))))
+         (push
+          (lparallel:future
+            (let* ((forward (q:to-list q))
+                   (reverse (gethash p reverse))
+                   (ps (join-sets forward reverse)))
+              (loop for rest on ps
+                    for p1 = (car rest) sum
+                      (loop for p2 in (cdr rest)
+                            for priority = (- (funcall dist p1 p2)) sum
+                              (+
+                               ;; Check if p2 is a neighbor of p1
+                               (if (enqueue! p1 p2 priority) 1 0)
+                               ;; And vice-versa
+                               (if (enqueue! p2 p1 priority) 1 0))))))
+          updates))
        approx))
-    updates))
+    (reduce
+     (lambda (updates future)
+       (+ updates (lparallel:force future)))
+     updates
+     :initial-value 0)))
 
 (serapeum:-> nndescent! (p:dist hash-table (integer 1) &key
                          (:max-iterations (integer 1))
