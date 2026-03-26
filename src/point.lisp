@@ -31,23 +31,6 @@
                              (- %p1 %p2)))))
     (cl:plusp (vs:state-sum state))))
 
-(serapeum:-> op ((simple-array single-float (*))
-                 (simple-array single-float (*))
-                 real real)
-             (values (simple-array single-float (*)) &optional))
-(defun op (p1 p2 s1 s2)
-  (declare (optimize (speed 3)))
-  (let ((n (length p1)))
-    (assert (= n (length p2)))
-    (let ((res (make-array n :element-type 'single-float))
-          (s1 (float s1 0f0))
-          (s2 (float s2 0f0)))
-      (loop for i below (length res) do
-        (setf (aref res i)
-              (+ (* s1 (aref p1 i))
-                 (* s2 (aref p2 i)))))
-      res)))
-
 (serapeum:-> euclidean-dist ((simple-array single-float (*))
                              (simple-array single-float (*)))
              (values (single-float 0f0) &optional))
