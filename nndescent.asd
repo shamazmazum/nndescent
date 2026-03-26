@@ -11,7 +11,6 @@
                :serapeum
                :lparallel
                :nndescent/point
-               :nndescent/euclidean
                :nndescent/random-tree
                :nndescent/pqueue
                :nndescent/random-forest

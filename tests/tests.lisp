@@ -15,7 +15,7 @@
 (defun gen-point (n c)
   (lambda ()
     (make-array n
-                :element-type 'double-float
+                :element-type 'single-float
                 :initial-contents
                 (loop repeat n collect (- (random (* 2 c)) c)))))
 
@@ -39,19 +39,19 @@
 (test neighbors
   (for-all ((points (gen-points
                      (gen-integer :min 2000 :max 10000)
-                     (gen-point 400 1d0)))
+                     (gen-point 400 1f0)))
             (conn   (gen-integer :min 10 :max 40)))
-    (let ((tree (rt:make-random-tree e:*euclidean-ops* points conn)))
+    (let ((tree (rt:make-random-tree points conn)))
       (loop for p in points
-            for neighbors = (rt:neighbor-points e:*euclidean-ops* tree p)
+            for neighbors = (rt:neighbor-points tree p)
             do (is (member p neighbors :test #'eq))))))
 
 (test approximation
   (for-all ((ps (gen-points
                  (gen-integer :min 1000 :max 5000)
-                 (gen-point 3 1d0))))
-    (let ((approx (rf:initial-approximation e:*euclidean-ops* ps 30))
-          (exact  (n:knn #'e:dist ps 30)))
+                 (gen-point 3 1f0))))
+    (let ((approx (rf:initial-approximation #'p:euclidean-dist ps 30))
+          (exact  (n:knn #'p:euclidean-dist ps 30)))
       (is (< (loop for a in approx
                    for e in exact
                    count (< (diversion-index (q:to-sorted-list a) e) 15))
@@ -64,8 +64,8 @@
 (test reverse-map
   (for-all ((ps (gen-points
                  (gen-integer :min 1000 :max 5000)
-                 (gen-point 3 1d0))))
-    (let* ((approx (nn:random-forest-approximation e:*euclidean-ops* ps 30))
+                 (gen-point 3 1f0))))
+    (let* ((approx (nn:random-forest-approximation #'p:euclidean-dist ps 30))
            (reverse (nn:reverse-map approx)))
       (maphash
        (lambda (k v)
@@ -77,12 +77,12 @@
 (test nndescent-improvement
   (for-all ((ps (gen-points
                  (gen-integer :min 1000 :max 5000)
-                 (gen-point 3 1d0))))
+                 (gen-point 3 1f0))))
     (let ((approx (nn:nndescent!
-                   ps #'e:dist
-                   (nn:random-forest-approximation e:*euclidean-ops* ps 30)
+                   ps #'p:euclidean-dist
+                   (nn:random-forest-approximation #'p:euclidean-dist ps 30)
                    30))
-          (exact  (n:knn #'e:dist ps 30)))
+          (exact  (n:knn #'p:euclidean-dist ps 30)))
       (is (< (loop for a in approx
                    for e in exact
                    count (not (equalp a e)))

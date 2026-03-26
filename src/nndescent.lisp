@@ -10,10 +10,10 @@
 
 ;; FIXME: It would be better if rf:initial-approximation returned a
 ;; vector with indices into an array of points.
-(serapeum:-> random-forest-approximation (p:operations list (integer 1))
+(serapeum:-> random-forest-approximation (p:dist list (integer 1))
              (values hash-table &optional))
-(defun random-forest-approximation (ops ps k)
-  (let ((qs (rf:initial-approximation ops ps k))
+(defun random-forest-approximation (dist ps k)
+  (let ((qs (rf:initial-approximation dist ps k))
         (approx (make-hash-table :test #'eq)))
     (loop for p in ps
           for q in qs do

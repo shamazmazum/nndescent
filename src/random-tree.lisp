@@ -56,9 +56,9 @@
     (let ((xs (drop xs k1)))
       (values (car xs) (nth (- k2 k1) xs)))))
 
-(serapeum:-> make-random-tree (p:operations list (integer 1))
+(serapeum:-> make-random-tree (list (integer 1))
              (values node &optional))
-(defun make-random-tree (ops ps k)
+(defun make-random-tree (ps k)
   (declare (optimize (speed 3)))
   (let ((length (length ps)))
     (if (<= length k)
@@ -69,29 +69,29 @@
                      (if (null xs)
                          (values plus minus)
                          (let ((p (car xs)))
-                           (if (p:plusp ops p p1 p2)
+                           (if (p:plusp p p1 p2)
                                (%go (cons p plus) minus (cdr xs))
                                (%go plus (cons p minus) (cdr xs)))))))
             (multiple-value-bind (plus minus)
                 (%go nil nil ps)
               (node-inner
                p1 p2
-               (make-random-tree ops plus  k)
-               (make-random-tree ops minus k))))))))
+               (make-random-tree plus  k)
+               (make-random-tree minus k))))))))
 
-(serapeum:-> find-leaf (p:operations node t)
+(serapeum:-> find-leaf (node t)
              (values node-leaf &optional))
-(defun find-leaf (ops tree p)
+(defun find-leaf (tree p)
   (if (leafp tree) tree
-      (if (p:plusp ops p (node-inner-p1 tree) (node-inner-p2 tree))
-          (find-leaf ops (node-inner-plus  tree) p)
-          (find-leaf ops (node-inner-minus tree) p))))
+      (if (p:plusp p (node-inner-p1 tree) (node-inner-p2 tree))
+          (find-leaf (node-inner-plus  tree) p)
+          (find-leaf (node-inner-minus tree) p))))
 
-(serapeum:-> neighbor-points (p:operations node t)
+(serapeum:-> neighbor-points (node t)
              (values list &optional))
-(defun neighbor-points (ops tree p)
+(defun neighbor-points (tree p)
   (node-leaf-points
-   (find-leaf ops tree p)))
+   (find-leaf tree p)))
 
 (serapeum:-> leaf-histogram (node (integer 1))
              (values (simple-array alexandria:non-negative-fixnum (*)) &optional))
