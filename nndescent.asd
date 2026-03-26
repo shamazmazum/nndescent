@@ -16,9 +16,7 @@
                :nndescent/pqueue
                :nndescent/random-forest
                :nndescent/naive
-               #|
-               :nndescent/nndescent
-|#)
+               :nndescent/nndescent)
   :in-order-to ((test-op (load-op "nndescent/tests")))
   :perform (test-op (op system)
                       (declare (ignore op system))

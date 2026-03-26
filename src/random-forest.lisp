@@ -4,19 +4,19 @@
   (:local-nicknames (#:q  #:nndescent/pqueue)
                     (#:p  #:nndescent/point)
                     (#:rt #:nndescent/random-tree))
-  (:export #:make-random-forest
+  (:export #:dist
            #:initial-approximation))
 (in-package :nndescent/random-forest)
 
-(serapeum:-> plusp (simple-vector rt:plusp)
+(serapeum:-> plusp (simple-vector)
              (values rt:plusp &optional))
-(defun plusp (vector plusp)
+(defun plusp (vector)
   (declare (optimize (speed 3)))
   (lambda (i i1 i2)
-    (funcall plusp
-             (svref vector i)
-             (svref vector i1)
-             (svref vector i2))))
+    (p:plusp
+     (svref vector i)
+     (svref vector i1)
+     (svref vector i2))))
 
 (serapeum:-> dist (simple-vector p:dist)
              (values p:dist &optional))
@@ -36,7 +36,7 @@
                   collect
                   (lparallel:future
                     (rt:make-random-tree
-                     (plusp ps #'p:plusp)
+                     (plusp ps)
                      indices k))))))
 
 (serapeum:-> initial-approximation (p:dist simple-vector (integer 1))
@@ -45,7 +45,7 @@
   (declare (optimize (speed 3)))
   (let ((forest (make-random-forest ps (floor (* k 1.5)) 10))
         (dist (dist ps dist))
-        (plusp (plusp ps #'p:plusp)))
+        (plusp (plusp ps)))
     (flet ((make-queue (idx)
              (let ((q (q:make-queue (1+ k))))
                (loop for tree in forest

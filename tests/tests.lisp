@@ -71,35 +71,30 @@
                               15))
                (* (length ps) 0.1)))))))
 
-#|
 (in-suite nndescent)
 
 ;; This test is for me. It allows deeper understanding of what is
 ;; going on.
 (test reverse-map
-  (for-all ((ps (gen-points
+  (for-all ((ps (gen-points/vector
                  (gen-integer :min 1000 :max 5000)
                  (gen-point 3 1f0))))
-    (let* ((approx (nn:random-forest-approximation #'p:euclidean-dist ps 30))
+    (let* ((approx (rf:initial-approximation #'p:euclidean-dist ps 30))
            (reverse (nn:reverse-map approx)))
-      (maphash
-       (lambda (k v)
-         (declare (ignore k))
-         ;; Check there is no duplicates
-         (is (equalp v (remove-duplicates v :test #'eq))))
-       reverse))))
+      (loop for k below (length reverse)
+            for v = (svref reverse k) do
+              ;; Check there is no duplicates
+              (is (equalp v (remove-duplicates v :test #'eq)))))))
 
 (test nndescent-improvement
-  (for-all ((ps (gen-points
+  (for-all ((ps (gen-points/vector
                  (gen-integer :min 1000 :max 5000)
                  (gen-point 3 1f0))))
     (let ((approx (nn:nndescent!
-                   ps #'p:euclidean-dist
-                   (nn:random-forest-approximation #'p:euclidean-dist ps 30)
-                   30))
+                   ps (rf:initial-approximation #'p:euclidean-dist ps 30)
+                   #'p:euclidean-dist 30))
           (exact  (n:knn #'p:euclidean-dist ps 30)))
-      (is (< (loop for a in approx
-                   for e in exact
+      (is (< (loop for a across approx
+                   for e across exact
                    count (not (equalp a e)))
              (* (length ps) 0.02))))))
-|#
