@@ -22,3 +22,7 @@
  (:class qlot/source/ql:source-ql
   :initargs (:%version :latest)
   :version "ql-2016-08-25"))
+("vector-sum" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "shamazmazum/vector-sum" :ref nil :branch nil :tag "v1.0")
+  :version "github-4b4dfe171aee96fa75d5d6110bcc2c180496dbd7"))
