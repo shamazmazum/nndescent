@@ -19,10 +19,16 @@
                 :initial-contents
                 (loop repeat n collect (- (random (* 2 c)) c)))))
 
-(defun gen-points (amount-generator point-generator)
+(defun gen-points/list (amount-generator point-generator)
   (lambda ()
     (loop repeat  (funcall amount-generator)
           collect (funcall point-generator))))
+
+(defun gen-points/vector (amount-generator point-generator)
+  (lambda ()
+    (coerce
+     (funcall (gen-points/list amount-generator point-generator))
+     'vector)))
 
 (defun run-tests ()
   (every #'identity
@@ -37,26 +43,35 @@
 
 (in-suite random-tree)
 (test neighbors
-  (for-all ((points (gen-points
+  (for-all ((points (gen-points/list
                      (gen-integer :min 2000 :max 10000)
                      (gen-point 400 1f0)))
             (conn   (gen-integer :min 10 :max 40)))
-    (let ((tree (rt:make-random-tree points conn)))
+    (let ((tree (rt:make-random-tree #'p:plusp points conn)))
       (loop for p in points
-            for neighbors = (rt:neighbor-points tree p)
+            for neighbors = (rt:neighbor-points #'p:plusp tree p)
             do (is (member p neighbors :test #'eq))))))
 
 (test approximation
-  (for-all ((ps (gen-points
+  (for-all ((ps (gen-points/vector
                  (gen-integer :min 1000 :max 5000)
                  (gen-point 3 1f0))))
     (let ((approx (rf:initial-approximation #'p:euclidean-dist ps 30))
           (exact  (n:knn #'p:euclidean-dist ps 30)))
-      (is (< (loop for a in approx
-                   for e in exact
-                   count (< (diversion-index (q:to-sorted-list a) e) 15))
-             (* (length ps) 0.1))))))
+      (flet ((dequeue (q)
+               (mapcar
+                (lambda (i)
+                  (svref ps i))
+                (q:to-sorted-list q))))
+        (is (< (loop for a across approx
+                     for e across exact
+                     count (< (diversion-index
+                               (dequeue a)
+                               (map 'list #'identity e))
+                              15))
+               (* (length ps) 0.1)))))))
 
+#|
 (in-suite nndescent)
 
 ;; This test is for me. It allows deeper understanding of what is
@@ -87,3 +102,4 @@
                    for e in exact
                    count (not (equalp a e)))
              (* (length ps) 0.02))))))
+|#

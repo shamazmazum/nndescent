@@ -6,8 +6,7 @@
 (in-package :nndescent/point)
 
 (deftype dist ()
-  '(function ((simple-array single-float (*))
-              (simple-array single-float (*)))
+  '(function (t t)
     (values (single-float 0f0) &optional)))
 
 (serapeum:-> plusp ((simple-array single-float (*))

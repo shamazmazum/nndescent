@@ -1,13 +1,18 @@
 (defpackage nndescent/random-tree
   (:use #:cl)
-  (:local-nicknames (#:p #:nndescent/point))
-  (:export #:node
+  (:shadow #:plusp)
+  (:export #:plusp
+           #:node
            #:make-random-tree
            #:neighbor-points
            #:leaf-histogram
            #:depth-histogram))
 (in-package :nndescent/random-tree)
 
+;; Requires Euclidean vector space
+;; (plusp p p1 p2) computes <p - (p1 + p2)/2, p1 - p2>
+(deftype plusp ()
+  '(function (t t t) (values boolean &optional)))
 (deftype node () '(or node-inner node-leaf))
 
 (serapeum:defconstructor node-leaf
@@ -56,9 +61,9 @@
     (let ((xs (drop xs k1)))
       (values (car xs) (nth (- k2 k1) xs)))))
 
-(serapeum:-> make-random-tree (list (integer 1))
+(serapeum:-> make-random-tree (plusp list (integer 1))
              (values node &optional))
-(defun make-random-tree (ps k)
+(defun make-random-tree (plusp ps k)
   (declare (optimize (speed 3)))
   (let ((length (length ps)))
     (if (<= length k)
@@ -69,29 +74,29 @@
                      (if (null xs)
                          (values plus minus)
                          (let ((p (car xs)))
-                           (if (p:plusp p p1 p2)
+                           (if (funcall plusp p p1 p2)
                                (%go (cons p plus) minus (cdr xs))
                                (%go plus (cons p minus) (cdr xs)))))))
             (multiple-value-bind (plus minus)
                 (%go nil nil ps)
               (node-inner
                p1 p2
-               (make-random-tree plus  k)
-               (make-random-tree minus k))))))))
+               (make-random-tree plusp plus  k)
+               (make-random-tree plusp minus k))))))))
 
-(serapeum:-> find-leaf (node t)
+(serapeum:-> find-leaf (plusp node t)
              (values node-leaf &optional))
-(defun find-leaf (tree p)
+(defun find-leaf (plusp tree p)
   (if (leafp tree) tree
-      (if (p:plusp p (node-inner-p1 tree) (node-inner-p2 tree))
-          (find-leaf (node-inner-plus  tree) p)
-          (find-leaf (node-inner-minus tree) p))))
+      (if (funcall plusp p (node-inner-p1 tree) (node-inner-p2 tree))
+          (find-leaf plusp (node-inner-plus  tree) p)
+          (find-leaf plusp (node-inner-minus tree) p))))
 
-(serapeum:-> neighbor-points (node t)
+(serapeum:-> neighbor-points (plusp node t)
              (values list &optional))
-(defun neighbor-points (tree p)
+(defun neighbor-points (plusp tree p)
   (node-leaf-points
-   (find-leaf tree p)))
+   (find-leaf plusp tree p)))
 
 (serapeum:-> leaf-histogram (node (integer 1))
              (values (simple-array alexandria:non-negative-fixnum (*)) &optional))
