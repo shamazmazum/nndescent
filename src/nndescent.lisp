@@ -4,6 +4,7 @@
                     (#:p  #:nndescent/point)
                     (#:rf #:nndescent/random-forest))
   (:export #:nndescent!
+           #:nndescent
            #:reverse-map)) ; for testing
 (in-package :nndescent/nndescent)
 
@@ -50,6 +51,10 @@
                            (loop for p2 in (cdr rest)
                                  for priority = (- (funcall dist p1 p2))
                                  sum
+                                 ;; FIXME: Race here. We do not update p'th queue, but
+                                 ;; rather p1'th and p2'th. Some other threads can do the
+                                 ;; same. We need to store the updates and then apply them
+                                 ;; in the main thread.
                                  (+
                                   ;; Check if p2 is a neighbor of p1
                                   (if (enqueue! p1 p2 priority) 1 0)
@@ -80,3 +85,12 @@
             (aref ps idx))
           (q:to-sorted-list q)))
        approx))
+
+(serapeum:-> nndescent (simple-vector simple-vector p:dist (integer 1) &key
+                        (:max-iterations (integer 1))
+                        (:min-updates    (integer 0)))
+             (values simple-vector &optional))
+(defun nndescent (ps approx dist k &key (max-iterations 5) (min-updates 0))
+  (nndescent! ps (map 'vector #'q:copy-queue approx) dist k
+              :max-iterations max-iterations
+              :min-updates    min-updates))
