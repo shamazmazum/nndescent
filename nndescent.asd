@@ -10,6 +10,7 @@
   :depends-on (:alexandria
                :serapeum
                :lparallel
+               :bordeaux-threads
                :vector-sum
                :nndescent/point
                :nndescent/random-tree

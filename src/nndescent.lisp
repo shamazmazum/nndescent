@@ -34,8 +34,13 @@
         updates)
     (flet ((enqueue! (p1 p2 prio)
              (let ((q (svref approx p1)))
-               (and (not (q:in-queue-p p2 q))
-                    (q:enqueue-limited! q p2 prio k)))))
+               ;; In some (quite rare, hopefully) cases, two or more
+               ;; threads can write to the same queue. Just guard it
+               ;; with a lock (but maybe there are better ways to
+               ;; avoid the race.
+               (q:with-queue-lock (q)
+                 (and (not (q:in-queue-p p2 q))
+                      (q:enqueue-limited! q p2 prio k))))))
       (loop for p below (length approx)
             for q = (svref approx p) do
               (let ((p p)
@@ -51,10 +56,6 @@
                            (loop for p2 in (cdr rest)
                                  for priority = (- (funcall dist p1 p2))
                                  sum
-                                 ;; FIXME: Race here. We do not update p'th queue, but
-                                 ;; rather p1'th and p2'th. Some other threads can do the
-                                 ;; same. We need to store the updates and then apply them
-                                 ;; in the main thread.
                                  (+
                                   ;; Check if p2 is a neighbor of p1
                                   (if (enqueue! p1 p2 priority) 1 0)

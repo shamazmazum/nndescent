@@ -8,7 +8,7 @@
   (:export #:queue #:make-queue #:copy-queue
            #:enqueue! #:enqueue-limited! #:in-queue-p
            #:dequeue! #:peek #:size #:trim! #:map #:do-queue
-           #:to-list #:to-sorted-list
+           #:to-list #:to-sorted-list #:with-queue-lock
            #:queue-size-limit-reached
            #:queue-size-limit-reached-queue #:queue-size-limit-reached-object))
 (in-package #:nndescent/pqueue)
@@ -28,7 +28,8 @@
   (prio-vector (make-array 256 :element-type 'prio-type) :type prio-vector-type)
   (size 0 :type a:array-length)
   (extension-factor 2 :type extension-factor-type)
-  (extend-queue-p t :type boolean))
+  (extend-queue-p t :type boolean)
+  (mutex (bt:make-lock)))
 
 (serapeum:-> make-queue (&optional a:array-index extension-factor-type boolean)
              (values queue &optional))
@@ -264,6 +265,10 @@
     (do-queue (x q)
       (push x acc))
     acc))
+
+(defmacro with-queue-lock ((queue) &body body)
+  `(bt:with-lock-held ((%mutex ,queue))
+     ,@body))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Conditions
