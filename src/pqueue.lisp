@@ -29,7 +29,7 @@
   (size 0 :type a:array-length)
   (extension-factor 2 :type extension-factor-type)
   (extend-queue-p t :type boolean)
-  (mutex (bt:make-lock)))
+  (locked nil :type boolean))
 
 (serapeum:-> make-queue (&optional a:array-index extension-factor-type boolean)
              (values queue &optional))
@@ -266,9 +266,21 @@
       (push x acc))
     acc))
 
+(defun acquire-lock (queue)
+  (loop
+    (unless (sb-ext:compare-and-swap (%locked queue) nil t)
+      (return t))))
+
+(defun release-lock (lock)
+  (setf (%locked lock) nil))
+
 (defmacro with-queue-lock ((queue) &body body)
-  `(bt:with-lock-held ((%mutex ,queue))
-     ,@body))
+  (let ((sym (gensym)))
+    `(let ((,sym ,queue))
+       (acquire-lock ,sym)
+       (unwind-protect
+            (progn ,@body)
+         (release-lock ,sym)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Conditions
