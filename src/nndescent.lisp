@@ -19,13 +19,6 @@
               (push k (svref result v))))
     result))
 
-(serapeum:-> join! (list list)
-             (values list &optional))
-(defun join! (s1 s2)
-  (declare (optimize (speed 3)))
-  (loop for x in s2 do (pushnew x s1 :test #'eq))
-  s1)
-
 (serapeum:-> nndescent-update! (p:dist simple-vector simple-vector (integer 1))
              (values (integer 0) &optional))
 (defun nndescent-update! (dist ps approx k)
@@ -47,9 +40,9 @@
                     (q q))
                 (push
                  (lparallel:future
-                   (let* ((forward (q:to-list q))
-                          (reverse (svref reverse p))
-                          (set (join! forward reverse)))
+                   (let ((set (svref reverse p)))
+                     (q:do-queue (v q)
+                       (pushnew v set :test #'eq))
                      (loop for rest on set
                            for p1 = (car rest)
                            sum

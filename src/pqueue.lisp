@@ -8,7 +8,7 @@
   (:export #:queue #:make-queue #:copy-queue
            #:enqueue! #:enqueue-limited! #:in-queue-p
            #:dequeue! #:peek #:size #:trim! #:map #:do-queue
-           #:to-list #:to-sorted-list #:with-queue-lock
+           #:to-sorted-list #:with-queue-lock
            #:queue-size-limit-reached
            #:queue-size-limit-reached-queue #:queue-size-limit-reached-object))
 (in-package #:nndescent/pqueue)
@@ -256,14 +256,6 @@
   (let ((q (copy-queue q)) acc)
     (loop for obj = (dequeue! q)
           while obj do (push obj acc))
-    acc))
-
-(serapeum:-> to-list (queue)
-             (values list &optional))
-(defun to-list (q)
-  (let (acc)
-    (do-queue (x q)
-      (push x acc))
     acc))
 
 (defun acquire-lock (queue)
