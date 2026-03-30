@@ -13,6 +13,7 @@
                :vector-sum
                :nndescent/point
                :nndescent/random-tree
+               :nndescent/generation
                :nndescent/pqueue
                :nndescent/random-forest
                :nndescent/naive

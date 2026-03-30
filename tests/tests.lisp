@@ -61,7 +61,7 @@
       (flet ((dequeue (q)
                (mapcar
                 (lambda (i)
-                  (svref ps i))
+                  (svref ps (g:pgen-point i)))
                 (q:to-sorted-list q))))
         (is (< (loop for a across approx
                      for e across exact

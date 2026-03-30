@@ -3,6 +3,7 @@
   (:shadow #:plusp)
   (:local-nicknames (#:q  #:nndescent/pqueue)
                     (#:p  #:nndescent/point)
+                    (#:g  #:nndescent/generation)
                     (#:rt #:nndescent/random-tree))
   (:export #:dist
            #:initial-approximation))
@@ -53,8 +54,8 @@
                        (loop for %idx in neighbors
                              for d = (funcall dist idx %idx)
                              unless (or (= idx %idx)
-                                        (q:in-queue-p %idx q))
-                               do (q:enqueue-limited! q %idx (- d) k)))
+                                        (q:in-queue-p %idx q :key #'g:pgen-point))
+                               do (q:enqueue-limited! q (g:pgen %idx 0) (- d) k)))
                q)))
       (let ((qs (loop for i below (length ps)
                       collect (let ((i i)) (lparallel:future (make-queue i))))))

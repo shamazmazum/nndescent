@@ -2,32 +2,11 @@
   (:use #:cl)
   (:local-nicknames (#:q  #:nndescent/pqueue)
                     (#:p  #:nndescent/point)
+                    (#:g  #:nndescent/generation)
                     (#:rf #:nndescent/random-forest))
   (:export #:nndescent!
-           #:nndescent
-           #:reverse-map)) ; for testing
+           #:nndescent))
 (in-package :nndescent/nndescent)
-
-(deftype point () '(integer 0 #.(ash 1 (- 62 10))))
-(deftype generation () '(integer 0 1023))
-
-(serapeum:-> pgen (point generation)
-             (values alexandria:non-negative-fixnum &optional))
-(declaim (inline pgen))
-(defun pgen (p gen)
-  (logior (ash p 10) gen))
-
-(serapeum:-> pgen-point (alexandria:non-negative-fixnum)
-             (values point &optional))
-(declaim (inline pgen-point))
-(defun pgen-point (pgen)
-  (ash pgen -10))
-
-(serapeum:-> pgen-gen (alexandria:non-negative-fixnum)
-             (values generation &optional))
-(declaim (inline pgen-gen))
-(defun pgen-gen (pgen)
-  (logand pgen 1023))
 
 (serapeum:-> reverse-map (simple-vector)
              (values simple-vector &optional))
@@ -37,18 +16,9 @@
     (loop for k below length
           for q = (svref map k) do
             (q:do-queue (v q)
-              (push (pgen k (pgen-gen v))
-                    (svref result (pgen-point v)))))
+              (push (g:pgen k (g:pgen-gen v))
+                    (svref result (g:pgen-point v)))))
     result))
-
-(serapeum:-> attach-generation! (simple-vector)
-             (values &optional))
-(defun attach-generation! (approx)
-  (loop for q across approx do
-    (q:map-into!
-     q (lambda (p)
-         (pgen p 0))))
-  (values))
 
 (serapeum:-> nndescent-update! (p:dist simple-vector simple-vector
                                 (integer 1) alexandria:non-negative-fixnum)
@@ -68,8 +38,8 @@
                ;; with a lock (but maybe there are better ways to
                ;; avoid the race.
                (q:with-queue-lock (q)
-                 (and (not (q:in-queue-p p2 q :key #'pgen-point))
-                      (q:enqueue-limited! q (pgen p2 (1+ gen)) prio k))))))
+                 (and (not (q:in-queue-p p2 q :key #'g:pgen-point))
+                      (q:enqueue-limited! q (g:pgen p2 (1+ gen)) prio k))))))
       (loop for p below (length approx) do
         (let ((p p))
           (push
@@ -79,24 +49,19 @@
                    sum
                    (loop for p2 in (cdr rest)
                          sum
-                         (if (and (< (pgen-gen p1) gen)
-                                  (< (pgen-gen p2) gen))
+                         (if (and (< (g:pgen-gen p1) gen)
+                                  (< (g:pgen-gen p2) gen))
                              ;; Do not try to update two points from an older
                              ;; generation.
                              0
-                             (let ((priority (- (funcall
-                                                 dist
-                                                 (pgen-point p1)
-                                                 (pgen-point p2)))))
+                             (let* ((p1 (g:pgen-point p1))
+                                    (p2 (g:pgen-point p2))
+                                    (priority (- (funcall dist p1 p2))))
                                (+
                                 ;; Check if p2 is a neighbor of p1
-                                (if (enqueue!
-                                     (pgen-point p1) (pgen-point p2) priority)
-                                    1 0)
+                                (if (enqueue! p1 p2 priority) 1 0)
                                 ;; And vice-versa
-                                (if (enqueue!
-                                     (pgen-point p2) (pgen-point p1) priority)
-                                    1 0)))))))
+                                (if (enqueue! p2 p1 priority) 1 0)))))))
                  updates))))
     (reduce
      (lambda (updates future)
@@ -109,7 +74,6 @@
                          (:min-updates    (integer 0)))
              (values simple-vector &optional))
 (defun nndescent! (ps approx dist k &key (max-iterations 5) (min-updates 0))
-  (attach-generation! approx)
   (labels ((%go (gen)
              (if (zerop (- max-iterations gen)) approx
                  (let ((updates (nndescent-update! dist ps approx k gen)))
@@ -120,7 +84,7 @@
        (lambda (q)
          (mapcar
           (lambda (pgen)
-            (aref ps (pgen-point pgen)))
+            (aref ps (g:pgen-point pgen)))
           (q:to-sorted-list q)))
        approx))
 
