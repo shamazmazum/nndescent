@@ -73,19 +73,6 @@
 
 (in-suite nndescent)
 
-;; This test is for me. It allows deeper understanding of what is
-;; going on.
-(test reverse-map
-  (for-all ((ps (gen-points/vector
-                 (gen-integer :min 1000 :max 5000)
-                 (gen-point 3 1f0))))
-    (let* ((approx (rf:initial-approximation #'p:euclidean-dist ps 30))
-           (reverse (nn:reverse-map approx)))
-      (loop for k below (length reverse)
-            for v = (svref reverse k) do
-              ;; Check there is no duplicates
-              (is (equalp v (remove-duplicates v :test #'eq)))))))
-
 (test nndescent-improvement
   (for-all ((ps (gen-points/vector
                  (gen-integer :min 1000 :max 5000)

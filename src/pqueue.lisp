@@ -237,11 +237,12 @@
           (%prio-vector queue) (adjust-array* (%prio-vector queue) size)))
   (values))
 
-(serapeum:-> in-queue-p (t queue)
+(serapeum:-> in-queue-p (t queue &key (:key function))
              (values t &optional))
-(defun in-queue-p (object queue)
+(declaim (inline in-queue-p))
+(defun in-queue-p (object queue &key (key #'identity))
   (declare (optimize (speed 3) (space 0)))
-  (find object (%data-vector queue) :test #'eq :end (%size queue)))
+  (find object (%data-vector queue) :test #'eq :key key :end (%size queue)))
 
 (serapeum:-> map-into! (queue (serapeum:-> (t) t)) (values &optional))
 (defun map-into! (queue function)
