@@ -3,11 +3,10 @@
 
 (defpackage #:nndescent/pqueue
   (:use #:cl)
-  (:shadow #:map)
   (:local-nicknames (#:a #:alexandria))
   (:export #:queue #:make-queue #:copy-queue
            #:enqueue! #:enqueue-limited! #:in-queue-p
-           #:dequeue! #:peek #:size #:trim! #:map #:do-queue
+           #:dequeue! #:peek #:size #:trim! #:map-into! #:do-queue
            #:to-sorted-list #:with-queue-lock
            #:queue-size-limit-reached
            #:queue-size-limit-reached-queue #:queue-size-limit-reached-object))
@@ -244,10 +243,12 @@
   (declare (optimize (speed 3) (space 0)))
   (find object (%data-vector queue) :test #'eq :end (%size queue)))
 
-(serapeum:-> map (queue (serapeum:-> (t) t)) (values &optional))
-(defun map (queue function)
-  (dotimes (i (%size queue))
-    (funcall function (aref (%data-vector queue) i)))
+(serapeum:-> map-into! (queue (serapeum:-> (t) t)) (values &optional))
+(defun map-into! (queue function)
+  (let ((vector (%data-vector queue)))
+    (dotimes (i (%size queue))
+      (setf (aref vector i)
+            (funcall function (aref vector i)))))
   (values))
 
 (serapeum:-> to-sorted-list (queue)
