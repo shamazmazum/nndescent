@@ -54,9 +54,13 @@
                                 (integer 1) alexandria:non-negative-fixnum)
              (values (integer 0) &optional))
 (defun nndescent-update! (dist ps approx k gen)
-  (let ((reverse (reverse-map approx))
+  (let ((set (reverse-map approx))
         (dist (rf:dist ps dist))
         updates)
+    (loop for p below (length approx)
+          for q = (svref approx p) do
+            (q:do-queue (v q)
+              (pushnew v (svref set p) :test #'eq)))
     (flet ((enqueue! (p1 p2 prio)
              (let ((q (svref approx p1)))
                ;; In some (quite rare, hopefully) cases, two or more
@@ -66,38 +70,33 @@
                (q:with-queue-lock (q)
                  (and (not (q:in-queue-p p2 q :key #'pgen-point))
                       (q:enqueue-limited! q (pgen p2 (1+ gen)) prio k))))))
-      (loop for p below (length approx)
-            for q = (svref approx p) do
-              (let ((p p)
-                    (q q))
-                (push
-                 (lparallel:future
-                   (let ((set (svref reverse p)))
-                     (q:do-queue (v q)
-                       (pushnew v set :test #'eq))
-                     (loop for rest on set
-                           for p1 = (car rest)
-                           sum
-                           (loop for p2 in (cdr rest)
-                                 sum
-                                 (if (and (< (pgen-gen p1) gen)
-                                          (< (pgen-gen p2) gen))
-                                     ;; Do not try to update two points from an older
-                                     ;; generation.
-                                     0
-                                     (let ((priority (- (funcall
-                                                         dist
-                                                         (pgen-point p1)
-                                                         (pgen-point p2)))))
-                                       (+
-                                        ;; Check if p2 is a neighbor of p1
-                                        (if (enqueue!
-                                             (pgen-point p1) (pgen-point p2) priority)
-                                            1 0)
-                                        ;; And vice-versa
-                                        (if (enqueue!
-                                             (pgen-point p2) (pgen-point p1) priority)
-                                            1 0))))))))
+      (loop for p below (length approx) do
+        (let ((p p))
+          (push
+           (lparallel:future
+             (loop for rest on (svref set p)
+                   for p1 = (car rest)
+                   sum
+                   (loop for p2 in (cdr rest)
+                         sum
+                         (if (and (< (pgen-gen p1) gen)
+                                  (< (pgen-gen p2) gen))
+                             ;; Do not try to update two points from an older
+                             ;; generation.
+                             0
+                             (let ((priority (- (funcall
+                                                 dist
+                                                 (pgen-point p1)
+                                                 (pgen-point p2)))))
+                               (+
+                                ;; Check if p2 is a neighbor of p1
+                                (if (enqueue!
+                                     (pgen-point p1) (pgen-point p2) priority)
+                                    1 0)
+                                ;; And vice-versa
+                                (if (enqueue!
+                                     (pgen-point p2) (pgen-point p1) priority)
+                                    1 0)))))))
                  updates))))
     (reduce
      (lambda (updates future)
