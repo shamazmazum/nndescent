@@ -15,9 +15,10 @@
   (flet ((knn-list (p)
            (let ((q (q:make-queue (1+ k))))
              (loop for %p across ps
+                   for idx fixnum from 0
                    for d = (funcall dist p %p)
                    unless (eq p %p) do
-                     (q:enqueue-limited! q %p (- d) k))
+                     (q:enqueue-limited! q idx (- d) k))
              (q:to-sorted-list q))))
     (let ((qs (loop for p across ps collect
                     (let ((p p))

@@ -59,10 +59,8 @@
     (let ((approx (rf:initial-approximation #'p:euclidean-dist ps 30))
           (exact  (n:knn-graph #'p:euclidean-dist ps 30)))
       (flet ((dequeue (q)
-               (mapcar
-                (lambda (i)
-                  (svref ps (g:pgen-point i)))
-                (q:to-sorted-list q))))
+               (mapcar #'g:pgen-point
+                       (q:to-sorted-list q))))
         (is (< (loop for a across approx
                      for e across exact
                      count (< (diversion-index
@@ -81,8 +79,7 @@
                    #'p:euclidean-dist
                    ps (rf:initial-approximation #'p:euclidean-dist ps 30) 30))
           (exact  (n:knn-graph #'p:euclidean-dist ps 30)))
-      (is (< (loop for is across approx
-                   for e  across exact
-                   for a = (mapcar (lambda (idx) (aref ps idx)) is)
+      (is (< (loop for a across approx
+                   for e across exact
                    count (not (equalp a e)))
              (* (length ps) 0.02))))))
