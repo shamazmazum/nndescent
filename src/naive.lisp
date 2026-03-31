@@ -2,12 +2,12 @@
   (:use #:cl)
   (:local-nicknames (#:p #:nndescent/point)
                     (#:q #:nndescent/pqueue))
-  (:export #:knn))
+  (:export #:knn-graph))
 (in-package :nndescent/naive)
 
-(serapeum:-> knn (p:dist simple-vector (integer 1))
+(serapeum:-> knn-graph (p:dist simple-vector (integer 1))
              (values simple-vector &optional))
-(defun knn (dist ps k)
+(defun knn-graph (dist ps k)
   (flet ((knn-list (p)
            (let ((q (q:make-queue (1+ k))))
              (loop for %p across ps

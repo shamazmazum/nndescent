@@ -57,7 +57,7 @@
                  (gen-integer :min 1000 :max 5000)
                  (gen-point 3 1f0))))
     (let ((approx (rf:initial-approximation #'p:euclidean-dist ps 30))
-          (exact  (n:knn #'p:euclidean-dist ps 30)))
+          (exact  (n:knn-graph #'p:euclidean-dist ps 30)))
       (flet ((dequeue (q)
                (mapcar
                 (lambda (i)
@@ -80,7 +80,7 @@
     (let ((approx (nn:nndescent!
                    #'p:euclidean-dist
                    ps (rf:initial-approximation #'p:euclidean-dist ps 30) 30))
-          (exact  (n:knn #'p:euclidean-dist ps 30)))
+          (exact  (n:knn-graph #'p:euclidean-dist ps 30)))
       (is (< (loop for a across approx
                    for e across exact
                    count (not (equalp a e)))
