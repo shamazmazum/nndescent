@@ -83,3 +83,20 @@
                    for e across exact
                    count (not (equalp a e)))
              (* (length ps) 0.02))))))
+
+(test knn
+  (for-all ((set (gen-points/vector
+                  (gen-integer :min 5000 :max 10000)
+                  (gen-point 3 1f0)))
+            (qs  (gen-points/vector
+                  (gen-integer :min 1000 :max 5000)
+                  (gen-point 3 1f0))))
+    (let* ((graph (nn:nndescent!
+                   #'p:euclidean-dist
+                   set (rf:initial-approximation #'p:euclidean-dist set 30) 30))
+           (approx (nn:knn #'p:euclidean-dist set qs graph 2))
+           (exact  (n:knn  #'p:euclidean-dist set qs 2)))
+      (is (< (loop for e across approx
+                   for a across exact
+                   count (not (equalp a e)))
+             (* (length qs) 0.02))))))
