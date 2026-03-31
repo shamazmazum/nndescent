@@ -5,7 +5,8 @@
                     (#:g  #:nndescent/generation)
                     (#:rf #:nndescent/random-forest))
   (:export #:nndescent!
-           #:nndescent))
+           #:nndescent
+           #:knn))
 (in-package :nndescent/nndescent)
 
 (serapeum:-> reverse-map (simple-vector)
@@ -82,10 +83,7 @@
     (%go 0))
   (map 'vector
        (lambda (q)
-         (mapcar
-          (lambda (pgen)
-            (aref ps (g:pgen-point pgen)))
-          (q:to-sorted-list q)))
+         (q:to-sorted-list q :key #'g:pgen-point))
        approx))
 
 (serapeum:-> nndescent (p:dist simple-vector simple-vector (integer 1) &key
@@ -93,6 +91,40 @@
                         (:min-updates    (integer 0)))
              (values simple-vector &optional))
 (defun nndescent (dist ps approx k &key (max-iterations 5) (min-updates 0))
+  (assert (= (length ps) (length approx)))
   (nndescent! dist ps (map 'vector #'q:copy-queue approx) k
               :max-iterations max-iterations
               :min-updates    min-updates))
+
+(serapeum:-> knn-single (p:dist simple-vector t simple-vector (integer 1))
+             (values list &optional))
+(defun knn-single (dist ps p graph k)
+  (assert (= (length ps) (length graph)))
+  (let ((q (q:make-queue (1+ k))))
+    (labels ((%go! (best-point best-dist)
+               (let ((bp best-point)
+                     (bd best-dist))
+                 (loop for idx in (svref graph best-point)
+                       for d = (funcall dist (svref ps idx) p)
+                       for %p = (svref ps idx)
+                       unless (q:in-queue-p q %p) do
+                         (q:enqueue-limited! q %p (- d) k)
+                         (when (< d best-dist)
+                           (setq bp idx
+                                 bd d)))
+                 (when (/= bp best-point)
+                   (%go! bp bd)))))
+      (let* ((best-point (random (length ps)))
+             (best-dist  (funcall dist (svref ps best-point) p)))
+      (%go! best-point best-dist)))
+    (q:to-sorted-list q)))
+
+(serapeum:-> knn (p:dist simple-vector simple-vector simple-vector (integer 1))
+             (values simple-vector &optional))
+(defun knn (dist ps queries graph k)
+  (declare (optimize (speed 3)))
+  (lparallel:pmap
+   'vector
+   (lambda (p)
+     (knn-single dist ps p graph k))
+   queries))

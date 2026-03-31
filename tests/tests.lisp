@@ -81,7 +81,8 @@
                    #'p:euclidean-dist
                    ps (rf:initial-approximation #'p:euclidean-dist ps 30) 30))
           (exact  (n:knn-graph #'p:euclidean-dist ps 30)))
-      (is (< (loop for a across approx
-                   for e across exact
+      (is (< (loop for is across approx
+                   for e  across exact
+                   for a = (mapcar (lambda (idx) (aref ps idx)) is)
                    count (not (equalp a e)))
              (* (length ps) 0.02))))))

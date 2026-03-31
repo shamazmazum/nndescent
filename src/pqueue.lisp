@@ -244,12 +244,13 @@
   (declare (optimize (speed 3) (space 0)))
   (find object (%data-vector queue) :test #'eq :key key :end (%size queue)))
 
-(serapeum:-> to-sorted-list (queue)
+(serapeum:-> to-sorted-list (queue &key (:key (function (t) (values t &optional))))
              (values list &optional))
-(defun to-sorted-list (q)
+(defun to-sorted-list (q &key (key #'identity))
   (let ((q (copy-queue q)) acc)
     (loop for obj = (dequeue! q)
-          while obj do (push obj acc))
+          while obj
+          do (push (funcall key obj) acc))
     acc))
 
 (defun acquire-lock (queue)
