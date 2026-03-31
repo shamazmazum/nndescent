@@ -1,7 +1,8 @@
 (defpackage nndescent/generation
   (:use #:cl)
   (:export #:point #:generation
-           #:pgen #:pgen-point #:pgen-gen))
+           #:pgen #:pgen-point #:pgen-gen
+           #:seen #:seen-point #:seen-flag))
 (in-package :nndescent/generation)
 
 ;; Attaching generation tag to the point
@@ -25,3 +26,22 @@
 (declaim (inline pgen-gen))
 (defun pgen-gen (pgen)
   (logand pgen 1023))
+
+
+(serapeum:-> seen (point boolean)
+             (values alexandria:non-negative-fixnum &optional))
+(declaim (inline seen))
+(defun seen (p flag)
+  (logior (ash p 1) (if flag 1 0)))
+
+(serapeum:-> seen-point (alexandria:non-negative-fixnum)
+             (values point &optional))
+(declaim (inline seen-point))
+(defun seen-point (seen)
+  (ash seen -1))
+
+(serapeum:-> seen-flag (alexandria:non-negative-fixnum)
+             (values boolean &optional))
+(declaim (inline seen-flag))
+(defun seen-flag (seen)
+  (not (zerop (logand seen 1))))

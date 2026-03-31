@@ -101,23 +101,32 @@
 (defun knn-single (dist ps p graph k)
   (assert (= (length ps) (length graph)))
   (let ((q (q:make-queue (1+ k))))
-    (labels ((%go! (best-point best-dist)
-               (let ((bp best-point)
-                     (bd best-dist))
-                 (loop for idx in (svref graph best-point)
-                       for d = (funcall dist (svref ps idx) p)
-                       for %p = (svref ps idx)
-                       unless (q:in-queue-p q %p) do
-                         (q:enqueue-limited! q %p (- d) k)
-                         (when (< d best-dist)
-                           (setq bp idx
-                                 bd d)))
-                 (when (/= bp best-point)
-                   (%go! bp bd)))))
+    (labels ((%go! ()
+               (let (bp bd)
+                 ;; O(n) search here :(
+                 (q:do-queue (%p q)
+                   (unless (g:seen-flag %p)
+                     (let ((d (funcall dist (svref ps (g:seen-point %p)) p)))
+                       (when (or (null bp) (< d bd))
+                         (setq bp %p bd d)))))
+                 (when bp
+                   (q:map-into!
+                    q (lambda (%p)
+                        (if (= (g:seen-point %p)
+                               (g:seen-point bp))
+                            (g:seen (g:seen-point %p) t) %p)))
+                   (loop for idx in (svref graph (g:seen-point bp))
+                         for d = (funcall dist (svref ps idx) p)
+                         unless (q:in-queue-p q idx :key #'g:seen-point) do
+                           (q:enqueue-limited! q (g:seen idx nil) (- d) k))
+                   (%go!)))))
       (let* ((best-point (random (length ps)))
              (best-dist  (funcall dist (svref ps best-point) p)))
-      (%go! best-point best-dist)))
-    (q:to-sorted-list q)))
+        (q:enqueue-limited! q (g:seen best-point nil) (- best-dist) k)
+        (%go!)))
+    (q:to-sorted-list
+     q :key (lambda (seen)
+              (svref ps (g:seen-point seen))))))
 
 (serapeum:-> knn (p:dist simple-vector simple-vector simple-vector (integer 1))
              (values simple-vector &optional))

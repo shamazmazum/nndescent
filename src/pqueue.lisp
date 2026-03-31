@@ -253,6 +253,16 @@
           do (push (funcall key obj) acc))
     acc))
 
+(serapeum:-> map-into! (queue (function (t) (values t &optional)))
+             (values &optional))
+(declaim (inline map-into!))
+(defun map-into! (q f)
+  (let ((vector (%data-vector q)))
+    (dotimes (i (%size q))
+      (setf (aref vector i)
+            (funcall f (aref vector i)))))
+  (values))
+
 (defun acquire-lock (queue)
   (loop
     (unless (sb-ext:compare-and-swap (%locked queue) nil t)
