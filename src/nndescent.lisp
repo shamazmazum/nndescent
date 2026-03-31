@@ -38,7 +38,7 @@
                ;; with a lock (but maybe there are better ways to
                ;; avoid the race.
                (q:with-queue-lock (q)
-                 (and (not (q:in-queue-p p2 q :key #'g:pgen-point))
+                 (and (not (q:in-queue-p q p2 :key #'g:pgen-point))
                       (q:enqueue-limited! q (g:pgen p2 (1+ gen)) prio k))))))
       (loop for p below (length approx) do
         (let ((p p))
@@ -69,11 +69,11 @@
      updates
      :initial-value 0)))
 
-(serapeum:-> nndescent! (simple-vector simple-vector p:dist (integer 1) &key
+(serapeum:-> nndescent! (p:dist simple-vector simple-vector (integer 1) &key
                          (:max-iterations (integer 1))
                          (:min-updates    (integer 0)))
              (values simple-vector &optional))
-(defun nndescent! (ps approx dist k &key (max-iterations 5) (min-updates 0))
+(defun nndescent! (dist ps approx k &key (max-iterations 5) (min-updates 0))
   (labels ((%go (gen)
              (if (zerop (- max-iterations gen)) approx
                  (let ((updates (nndescent-update! dist ps approx k gen)))
@@ -88,11 +88,11 @@
           (q:to-sorted-list q)))
        approx))
 
-(serapeum:-> nndescent (simple-vector simple-vector p:dist (integer 1) &key
+(serapeum:-> nndescent (p:dist simple-vector simple-vector (integer 1) &key
                         (:max-iterations (integer 1))
                         (:min-updates    (integer 0)))
              (values simple-vector &optional))
-(defun nndescent (ps approx dist k &key (max-iterations 5) (min-updates 0))
-  (nndescent! ps (map 'vector #'q:copy-queue approx) dist k
+(defun nndescent (dist ps approx k &key (max-iterations 5) (min-updates 0))
+  (nndescent! dist ps (map 'vector #'q:copy-queue approx) k
               :max-iterations max-iterations
               :min-updates    min-updates))

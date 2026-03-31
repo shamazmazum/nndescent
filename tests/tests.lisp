@@ -78,8 +78,8 @@
                  (gen-integer :min 1000 :max 5000)
                  (gen-point 3 1f0))))
     (let ((approx (nn:nndescent!
-                   ps (rf:initial-approximation #'p:euclidean-dist ps 30)
-                   #'p:euclidean-dist 30))
+                   #'p:euclidean-dist
+                   ps (rf:initial-approximation #'p:euclidean-dist ps 30) 30))
           (exact  (n:knn #'p:euclidean-dist ps 30)))
       (is (< (loop for a across approx
                    for e across exact

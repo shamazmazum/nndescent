@@ -54,7 +54,7 @@
                        (loop for %idx in neighbors
                              for d = (funcall dist idx %idx)
                              unless (or (= idx %idx)
-                                        (q:in-queue-p %idx q :key #'g:pgen-point))
+                                        (q:in-queue-p q %idx :key #'g:pgen-point))
                                do (q:enqueue-limited! q (g:pgen %idx 0) (- d) k)))
                q)))
       (let ((qs (loop for i below (length ps)
