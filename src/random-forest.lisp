@@ -1,7 +1,8 @@
 (defpackage nndescent/random-forest
   (:use #:cl)
   (:shadow #:plusp)
-  (:local-nicknames (#:q  #:nndescent/pqueue)
+  (:local-nicknames (#:a #:alexandria)
+                    (#:q  #:nndescent/pqueue)
                     (#:p  #:nndescent/point)
                     (#:g  #:nndescent/generation)
                     (#:rt #:nndescent/random-tree))
@@ -28,9 +29,10 @@
              (svref vector i1)
              (svref vector i2))))
 
-(serapeum:-> make-random-forest (simple-vector (integer 1) (integer 1))
+(serapeum:-> make-random-forest (simple-vector a:positive-fixnum a:positive-fixnum)
              (values list &optional))
 (defun make-random-forest (ps k n)
+  (declare (optimize (speed 3)))
   (let ((indices (loop for i below (length ps) collect i)))
     (mapcar #'lparallel:force
             (loop repeat n
@@ -40,7 +42,8 @@
                      (plusp ps)
                      indices k))))))
 
-(serapeum:-> initial-approximation (p:dist simple-vector (integer 1) &optional (integer 1))
+(serapeum:-> initial-approximation (p:dist simple-vector a:positive-fixnum
+                                    &optional a:positive-fixnum)
              (values simple-vector &optional))
 (defun initial-approximation (dist ps k &optional (ntrees 10))
   (declare (optimize (speed 3)))

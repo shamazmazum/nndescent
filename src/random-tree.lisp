@@ -1,6 +1,7 @@
 (defpackage nndescent/random-tree
   (:use #:cl)
   (:shadow #:plusp)
+  (:local-nicknames (#:a #:alexandria))
   (:export #:plusp
            #:node
            #:make-random-tree
@@ -30,38 +31,42 @@
 (defun leafp (node)
   (typep node 'node-leaf))
 
-(serapeum:-> distinct-randoms ((integer 2))
-             (values (integer 0) (integer 0) &optional))
+(serapeum:-> distinct-randoms ((and (integer 2) a:array-length))
+             (values a:array-length a:array-length &optional))
 (defun distinct-randoms (n)
+  (declare (optimize (speed 3)))
   (let ((k1 (random n))
         (k2 (random (1- n))))
     (values k1 (if (< k2 k1) k2 (1+ k2)))))
 
-(serapeum:-> sorted-distinct-randoms ((integer 2))
-             (values (integer 0) (integer 0) &optional))
+(serapeum:-> sorted-distinct-randoms ((and (integer 2) a:array-length))
+             (values a:array-length a:array-length &optional))
 (defun sorted-distinct-randoms (n)
+  (declare (optimize (speed 3)))
   (multiple-value-bind (k1 k2)
       (distinct-randoms n)
     (if (< k1 k2)
         (values k1 k2)
         (values k2 k1))))
 
-(serapeum:-> drop (list (integer 0))
+(serapeum:-> drop (list a:array-length)
              (values list &optional))
 (defun drop (xs n)
+  (declare (optimize (speed 3)))
   (if (zerop n) xs
       (drop (cdr xs) (1- n))))
 
-(serapeum:-> random-elements (list &optional (integer 2))
+(serapeum:-> random-elements (list &optional a:array-length)
              (values t t &optional))
 (defun random-elements (xs &optional (length (length xs)))
+  (declare (optimize (speed 3)))
   (assert (> length 1))
   (multiple-value-bind (k1 k2)
       (sorted-distinct-randoms length)
     (let ((xs (drop xs k1)))
       (values (car xs) (nth (- k2 k1) xs)))))
 
-(serapeum:-> make-random-tree (plusp list (integer 1))
+(serapeum:-> make-random-tree (plusp list a:positive-fixnum)
              (values node &optional))
 (defun make-random-tree (plusp ps k)
   (declare (optimize (speed 3)))
@@ -87,6 +92,7 @@
 (serapeum:-> find-leaf (plusp node t)
              (values node-leaf &optional))
 (defun find-leaf (plusp tree p)
+  (declare (optimize (speed 3)))
   (if (leafp tree) tree
       (if (funcall plusp p (node-inner-p1 tree) (node-inner-p2 tree))
           (find-leaf plusp (node-inner-plus  tree) p)
@@ -95,15 +101,16 @@
 (serapeum:-> neighbor-points (plusp node t)
              (values list &optional))
 (defun neighbor-points (plusp tree p)
+  (declare (optimize (speed 3)))
   (node-leaf-points
    (find-leaf plusp tree p)))
 
 (serapeum:-> leaf-histogram (node (integer 1))
-             (values (simple-array alexandria:non-negative-fixnum (*)) &optional))
+             (values (simple-array a:non-negative-fixnum (*)) &optional))
 (defun leaf-histogram (tree k)
   (let ((histogram (make-array
                     (1+ k)
-                    :element-type 'alexandria:non-negative-fixnum
+                    :element-type 'a:non-negative-fixnum
                     :initial-element 0)))
     (labels ((%go (node)
                (cond
@@ -127,5 +134,5 @@
                      (%go (node-inner-minus node) depth)))))
       (%go tree 0))
     (sort
-     (alexandria:hash-table-alist table)
+     (a:hash-table-alist table)
      #'< :key #'car)))

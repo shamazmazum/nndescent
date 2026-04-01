@@ -1,6 +1,6 @@
 (defpackage nndescent/generation
   (:use #:cl)
-  (:export #:point #:generation
+  (:export #:point #:generation #:iterations
            #:pgen #:pgen-point #:pgen-gen
            #:seen #:seen-point #:seen-flag))
 (in-package :nndescent/generation)
@@ -8,6 +8,7 @@
 ;; Attaching generation tag to the point
 (deftype point () '(integer 0 #.(ash 1 (- 62 10))))
 (deftype generation () '(integer 0 1023))
+(deftype iterations () '(integer 1 1024))
 
 (serapeum:-> pgen (point generation)
              (values alexandria:non-negative-fixnum &optional))

@@ -196,6 +196,7 @@
 (serapeum:-> enqueue-limited! (queue t prio-type a:array-length)
              (values boolean &optional))
 (defun enqueue-limited! (queue object priority limit)
+  (declare (optimize (speed 3)))
   (cond
     ((< (%size queue) limit)
      (enqueue! queue object priority)
@@ -244,9 +245,10 @@
   (declare (optimize (speed 3) (space 0)))
   (find object (%data-vector queue) :test #'eq :key key :end (%size queue)))
 
-(serapeum:-> to-sorted-list (queue &key (:key (function (t) (values t &optional))))
+(serapeum:-> to-sorted-list (queue &optional (function (t) (values t &optional)))
              (values list &optional))
-(defun to-sorted-list (q &key (key #'identity))
+(defun to-sorted-list (q &optional (key #'identity))
+  (declare (optimize (speed 3)))
   (let ((q (copy-queue q)) acc)
     (loop for obj = (dequeue! q)
           while obj

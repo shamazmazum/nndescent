@@ -1,6 +1,7 @@
 (defpackage nndescent/nndescent
   (:use #:cl)
-  (:local-nicknames (#:q  #:nndescent/pqueue)
+  (:local-nicknames (#:a  #:alexandria)
+                    (#:q  #:nndescent/pqueue)
                     (#:p  #:nndescent/point)
                     (#:g  #:nndescent/generation)
                     (#:rf #:nndescent/random-forest))
@@ -12,6 +13,7 @@
 (serapeum:-> reverse-map (simple-vector)
              (values simple-vector &optional))
 (defun reverse-map (map)
+  (declare (optimize (speed 3)))
   (let* ((length (length map))
          (result (make-array length :initial-element nil)))
     (loop for k below length
@@ -21,12 +23,16 @@
                     (svref result (g:pgen-point v)))))
     result))
 
-(serapeum:-> nndescent-update! (p:dist simple-vector simple-vector
-                                (integer 1) alexandria:non-negative-fixnum)
+(serapeum:-> nndescent-update! (p:dist simple-vector
+                                simple-vector
+                                a:positive-fixnum
+                                a:non-negative-fixnum)
              (values (integer 0) &optional))
 (defun nndescent-update! (dist ps approx k gen)
+  (declare (optimize (speed 3)))
   (let ((set (reverse-map approx))
         (dist (rf:dist ps dist))
+        ;; Highly unlikely, this value can be bigger than most-positive-fixnum.
         updates)
     (loop for p below (length approx)
           for q = (svref approx p) do
@@ -62,7 +68,9 @@
                                 ;; Check if p2 is a neighbor of p1
                                 (if (enqueue! p1 p2 priority) 1 0)
                                 ;; And vice-versa
-                                (if (enqueue! p2 p1 priority) 1 0)))))))
+                                (if (enqueue! p2 p1 priority) 1 0))))
+                         fixnum)
+                   fixnum))
                  updates))))
     (reduce
      (lambda (updates future)
@@ -70,11 +78,13 @@
      updates
      :initial-value 0)))
 
-(serapeum:-> nndescent! (p:dist simple-vector simple-vector (integer 1) &key
-                         (:max-iterations (integer 1))
-                         (:min-updates    (integer 0)))
+(serapeum:-> nndescent! (p:dist simple-vector simple-vector a:positive-fixnum &key
+                         (:max-iterations g:iterations)
+                         (:min-updates    a:non-negative-fixnum))
              (values simple-vector &optional))
 (defun nndescent! (dist ps approx k &key (max-iterations 5) (min-updates 0))
+  (declare (optimize (speed 3)))
+  (assert (= (length ps) (length approx)))
   (labels ((%go (gen)
              (if (zerop (- max-iterations gen)) approx
                  (let ((updates (nndescent-update! dist ps approx k gen)))
@@ -83,22 +93,22 @@
     (%go 0))
   (map 'vector
        (lambda (q)
-         (q:to-sorted-list q :key #'g:pgen-point))
+         (q:to-sorted-list q #'g:pgen-point))
        approx))
 
-(serapeum:-> nndescent (p:dist simple-vector simple-vector (integer 1) &key
-                        (:max-iterations (integer 1))
-                        (:min-updates    (integer 0)))
+(serapeum:-> nndescent (p:dist simple-vector simple-vector a:positive-fixnum &key
+                        (:max-iterations g:iterations)
+                        (:min-updates    a:non-negative-fixnum))
              (values simple-vector &optional))
 (defun nndescent (dist ps approx k &key (max-iterations 5) (min-updates 0))
-  (assert (= (length ps) (length approx)))
   (nndescent! dist ps (map 'vector #'q:copy-queue approx) k
               :max-iterations max-iterations
               :min-updates    min-updates))
 
-(serapeum:-> knn-single (p:dist simple-vector t simple-vector (integer 1))
+(serapeum:-> knn-single (p:dist simple-vector t simple-vector a:positive-fixnum)
              (values list &optional))
 (defun knn-single (dist ps p graph k)
+  (declare (optimize (speed 3)))
   (assert (= (length ps) (length graph)))
   (let ((q (q:make-queue (1+ k))))
     (labels ((%go! ()
@@ -125,10 +135,10 @@
         (q:enqueue-limited! q (g:seen best-point nil) (- best-dist) k)
         (%go!)))
     (q:to-sorted-list
-     q :key (lambda (seen)
-              (svref ps (g:seen-point seen))))))
+     q (lambda (seen)
+         (svref ps (g:seen-point seen))))))
 
-(serapeum:-> knn (p:dist simple-vector simple-vector simple-vector (integer 1))
+(serapeum:-> knn (p:dist simple-vector simple-vector simple-vector a:positive-fixnum)
              (values simple-vector &optional))
 (defun knn (dist ps queries graph k)
   (declare (optimize (speed 3)))
