@@ -5,6 +5,8 @@
   (:export #:plusp #:dist
            #:operations #:operations-dist #:operations-plusp
            #:euclidean-dist
+           #:manhattan-dist
+           #:chebyshev-dist
            #:euclidean-plusp
            #:*euclidean-operations*))
 (in-package :nndescent/point)
@@ -59,3 +61,29 @@
 
 (defparameter *euclidean-operations*
   (operations #'euclidean-dist #'euclidean-plusp))
+
+;; Some more commonly used metrics
+(serapeum:-> manhattan-dist ((simple-array single-float (*))
+                             (simple-array single-float (*)))
+             (values (single-float 0f0) &optional))
+(defun manhattan-dist (p1 p2)
+  (declare (optimize (speed 3)))
+  (let ((n (length p1))
+        (state (vs:sum-state 0.0)))
+    (declare (dynamic-extent state))
+    (assert (= n (length p2)))
+    (loop for i below n do
+          (setq state (vs:add state (abs (- (aref p1 i) (aref p2 i))))))
+    (vs:state-sum state)))
+
+(serapeum:-> chebyshev-dist ((simple-array single-float (*))
+                             (simple-array single-float (*)))
+             (values (single-float 0f0) &optional))
+(defun chebyshev-dist (p1 p2)
+  (declare (optimize (speed 3)))
+  (let ((n (length p1))
+        (result 0f0))
+    (assert (= n (length p2)))
+    (loop for i below n do
+      (setq result (max result (abs (- (aref p1 i) (aref p2 i))))))
+    result))

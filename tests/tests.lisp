@@ -73,11 +73,11 @@
 
 (test nndescent-improvement
   (for-all ((ps (gen-points/vector
-                 (gen-integer :min 1000 :max 5000)
+                 (gen-integer :min 5000 :max 10000)
                  (gen-point 3 1f0))))
     (let ((approx (nn:nndescent!
-                   #'p:euclidean-dist
-                   ps (rf:initial-approximation p:*euclidean-operations* ps 30) 30))
+                   #'p:euclidean-dist ps
+                   (rf:initial-approximation p:*euclidean-operations* ps 30) 30))
           (exact  (n:knn-graph #'p:euclidean-dist ps 30)))
       (is (< (loop for a across approx
                    for e across exact
@@ -90,12 +90,15 @@
                   (gen-point 3 1f0)))
             (qs  (gen-points/vector
                   (gen-integer :min 1000 :max 5000)
-                  (gen-point 3 1f0))))
+                  (gen-point 3 1f0)))
+            (dist (gen-one-element #'p:euclidean-dist
+                                   #'p:manhattan-dist
+                                   #'p:chebyshev-dist)))
     (let* ((graph (nn:nndescent!
                    #'p:euclidean-dist
                    set (rf:initial-approximation p:*euclidean-operations* set 30) 30))
-           (approx (nn:knn #'p:euclidean-dist set qs graph 2))
-           (exact  (n:knn  #'p:euclidean-dist set qs 2)))
+           (approx (nn:knn dist set qs graph 2))
+           (exact  (n:knn  dist set qs 2)))
       (is (< (loop for e across approx
                    for a across exact
                    count (not (equalp a e)))
