@@ -2,18 +2,14 @@
   (:use #:cl)
   (:shadow #:plusp)
   (:local-nicknames (#:a #:alexandria))
-  (:export #:plusp
-           #:node
+  (:local-nicknames (#:p #:nndescent/point))
+  (:export #:node
            #:make-random-tree
            #:neighbor-points
            #:leaf-histogram
            #:depth-histogram))
 (in-package :nndescent/random-tree)
 
-;; Requires Euclidean vector space
-;; (plusp p p1 p2) computes <p - (p1 + p2)/2, p1 - p2>
-(deftype plusp ()
-  '(function (t t t) (values boolean &optional)))
 (deftype node () '(or node-inner node-leaf))
 
 (serapeum:defconstructor node-leaf
@@ -66,7 +62,7 @@
     (let ((xs (drop xs k1)))
       (values (car xs) (nth (- k2 k1) xs)))))
 
-(serapeum:-> make-random-tree (plusp list a:positive-fixnum)
+(serapeum:-> make-random-tree (p:plusp list a:positive-fixnum)
              (values node &optional))
 (defun make-random-tree (plusp ps k)
   (declare (optimize (speed 3)))
@@ -89,7 +85,7 @@
                (make-random-tree plusp plus  k)
                (make-random-tree plusp minus k))))))))
 
-(serapeum:-> find-leaf (plusp node t)
+(serapeum:-> find-leaf (p:plusp node t)
              (values node-leaf &optional))
 (defun find-leaf (plusp tree p)
   (declare (optimize (speed 3)))
@@ -98,7 +94,7 @@
           (find-leaf plusp (node-inner-plus  tree) p)
           (find-leaf plusp (node-inner-minus tree) p))))
 
-(serapeum:-> neighbor-points (plusp node t)
+(serapeum:-> neighbor-points (p:plusp node t)
              (values list &optional))
 (defun neighbor-points (plusp tree p)
   (declare (optimize (speed 3)))

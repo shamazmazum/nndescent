@@ -47,16 +47,16 @@
                      (gen-integer :min 2000 :max 10000)
                      (gen-point 400 1f0)))
             (conn   (gen-integer :min 10 :max 40)))
-    (let ((tree (rt:make-random-tree #'p:plusp points conn)))
+    (let ((tree (rt:make-random-tree #'p:euclidean-plusp points conn)))
       (loop for p in points
-            for neighbors = (rt:neighbor-points #'p:plusp tree p)
+            for neighbors = (rt:neighbor-points #'p:euclidean-plusp tree p)
             do (is (member p neighbors :test #'eq))))))
 
 (test approximation
   (for-all ((ps (gen-points/vector
                  (gen-integer :min 1000 :max 5000)
                  (gen-point 3 1f0))))
-    (let ((approx (rf:initial-approximation #'p:euclidean-dist ps 30))
+    (let ((approx (rf:initial-approximation p:*euclidean-operations* ps 30))
           (exact  (n:knn-graph #'p:euclidean-dist ps 30)))
       (flet ((dequeue (q)
                (mapcar #'g:pgen-point
@@ -77,7 +77,7 @@
                  (gen-point 3 1f0))))
     (let ((approx (nn:nndescent!
                    #'p:euclidean-dist
-                   ps (rf:initial-approximation #'p:euclidean-dist ps 30) 30))
+                   ps (rf:initial-approximation p:*euclidean-operations* ps 30) 30))
           (exact  (n:knn-graph #'p:euclidean-dist ps 30)))
       (is (< (loop for a across approx
                    for e across exact
@@ -93,7 +93,7 @@
                   (gen-point 3 1f0))))
     (let* ((graph (nn:nndescent!
                    #'p:euclidean-dist
-                   set (rf:initial-approximation #'p:euclidean-dist set 30) 30))
+                   set (rf:initial-approximation p:*euclidean-operations* set 30) 30))
            (approx (nn:knn #'p:euclidean-dist set qs graph 2))
            (exact  (n:knn  #'p:euclidean-dist set qs 2)))
       (is (< (loop for e across approx

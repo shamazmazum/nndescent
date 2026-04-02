@@ -14,7 +14,7 @@
 
 (deftype data-type () 't)
 (deftype data-vector-type () '(simple-array data-type (*)))
-(deftype prio-type () 'single-float)
+(deftype prio-type () 'real)
 (deftype prio-vector-type () '(simple-array prio-type (*)))
 (deftype extension-factor-type () '(integer 2 256))
 

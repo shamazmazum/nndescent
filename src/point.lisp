@@ -2,18 +2,28 @@
   (:use #:cl)
   (:shadow #:plusp)
   (:local-nicknames (#:vs #:vector-sum))
-  (:export #:plusp #:op #:dist #:euclidean-dist))
+  (:export #:plusp #:dist
+           #:operations #:operations-dist #:operations-plusp
+           #:euclidean-dist
+           #:euclidean-plusp
+           #:*euclidean-operations*))
 (in-package :nndescent/point)
 
 (deftype dist ()
   '(function (t t)
-    (values (single-float 0f0) &optional)))
+    (values (real 0) &optional)))
 
-(serapeum:-> plusp ((simple-array single-float (*))
-                    (simple-array single-float (*))
-                    (simple-array single-float (*)))
+;; Requires Euclidean vector space
+;; (plusp p p1 p2) computes <p - (p1 + p2)/2, p1 - p2>
+(deftype plusp ()
+  '(function (t t t)
+    (values boolean &optional)))
+
+(serapeum:-> euclidean-plusp ((simple-array single-float (*))
+                              (simple-array single-float (*))
+                              (simple-array single-float (*)))
              (values boolean &optional))
-(defun plusp (p p1 p2)
+(defun euclidean-plusp (p p1 p2)
   (declare (optimize (speed 3)))
   (let ((n (length p))
         (state (vs:sum-state 0f0)))
@@ -42,3 +52,10 @@
     (loop for i below n do
           (setq state (vs:add state (expt (- (aref p1 i) (aref p2 i)) 2))))
     (sqrt (vs:state-sum state))))
+
+(serapeum:defconstructor operations
+  (dist  dist)
+  (plusp plusp))
+
+(defparameter *euclidean-operations*
+  (operations #'euclidean-dist #'euclidean-plusp))
