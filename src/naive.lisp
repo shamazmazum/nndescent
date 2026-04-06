@@ -13,7 +13,7 @@
              (values simple-vector &optional))
 (defun knn-graph (dist ps k)
   "Make an exact k-NN connectivity graph of a point set @c(ps). This
-is a brute-force \\(O(n^2)\)) algorithm."
+is an exact and brute-force \\(O(n^2)\\) algorithm."
   (declare (optimize (speed 3)))
   (flet ((knn-list (p)
            (let ((q (q:make-queue (1+ k))))

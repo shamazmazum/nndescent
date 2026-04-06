@@ -37,7 +37,7 @@
 (defun manhattan-dist (x y)
   "Calculate Manhattan distance for two vectors of single floats.
 
-\\(\\rho(x, y) = \\lVert \\sum_k (x_k - y_k)^2 \\rVert \\)"
+\\(\\rho(x, y) = \\sum_k \\lvert x_k - y_k \\rvert \\)"
   (declare (optimize (speed 3)))
   (let ((n (length x))
         (state (vs:sum-state 0.0)))
@@ -53,7 +53,7 @@
 (defun chebyshev-dist (x y)
   "Calculate Chebyshev distance for two vectors of single floats.
 
-\\(\\rho(x, y) = \\max_k \\lVert (x_k - y_k)^2 \\)"
+\\(\\rho(x, y) = \\max_k \\lvert x_k - y_k \\rvert \\)"
   (declare (optimize (speed 3)))
   (let ((n (length x))
         (result 0f0))

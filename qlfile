@@ -4,3 +4,5 @@ ql alexandria
 ql fiveam
 ql lparallel
 github shamazmazum/vector-sum :tag v1.0
+github shamazmazum/codex
+github shamazmazum/docparser

@@ -34,6 +34,8 @@
         (dist (rf:dist ps dist))
         ;; Highly unlikely, this value can be bigger than most-positive-fixnum.
         updates)
+    ;; This operation cannot be made in the main loop because k-NN
+    ;; queues are altered during the process.
     (loop for p below (length approx)
           for q = (svref approx p) do
             (q:do-queue (v q)
@@ -83,7 +85,7 @@
                          (:min-updates    a:non-negative-fixnum))
              (values simple-vector &optional))
 (defun nndescent! (dist ps approx k &key (max-iterations 5) (min-updates 0))
-  "Improve accuracy of a k-NN connectivity graph @c(approx) inplace."
+  "Inplace version of @c(nndescent)."
   (declare (optimize (speed 3)))
   (assert (= (length ps) (length approx)))
   (labels ((%go (gen)

@@ -32,3 +32,9 @@
     :components ((:file "package")
                  (:file "tests"))
     :depends-on (:fiveam :nndescent))
+
+;; For qlot
+(defsystem :nndescent/doc
+  :name :nndescent/doc
+  :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
+  :depends-on (:nndescent :codex))
