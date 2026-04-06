@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+  API &ndash; nndescent approximate k-NN search algorithm
+</title>
+    <link rel="stylesheet" href="static/style.css"/>
+    
+  <link rel="stylesheet" href="static/highlight.css"/>
+  <script src="static/highlight.js"></script>
+  <script src="static/load-mathjax.js" async></script>
+  <style>
+   /* Highlight the current top-level TOC item, and hide the TOC of all other items */
+
+   .toc a[data-node="api"] {
+       /*color: #AD3108;*/
+   }
+
+   .toc ol {
+       display: none;
+   }
+
+   .toc li a[data-node="api"] {
+       font-weight: bold;
+   }
+
+   .toc li a[data-node="api"] + ol {
+       display: block;
+   }
+
+   .toc li a[data-node="api"] + ol li {
+       margin-left: 10px;
+   }
+  </style>
+
+  </head>
+  <body>
+    
+  <h1 class="doc-title">nndescent approximate k-NN search algorithm</h1>
+  <article id="article" data-section="api">
+    <aside>
+      <ol class="toc"><li><a href="index.html" data-node="index">Overview</a></li><li><a href="how-to-use.html" data-node="how-to-use">How to use</a></li><li><a href="api.html" data-node="api">API</a><ol><li><a href="api.html#common-metrics" data-node="common-metrics">Common metrics</a></li><li><a href="api.html#random-forest" data-node="random-forest">Random forest</a></li><li><a href="api.html#nndescent" data-node="nndescent">nndescent</a></li><li><a href="api.html#brute-force-algorithm" data-node="brute-force-algorithm">Brute-force algorithm</a></li></ol></li></ol>
+    </aside>
+    <main class="codex-section">
+      <header>
+        <h2 class="section-title">API</h2>
+      </header>
+      <div class="content">
+        
+   <h1 id="common-metrics">Common metrics</h1>
+       Package <code>nndescent/point</code>
+       
+       <div class="codex-doc-node codex-type"><code class="codex-name">dist</code><code class="codex-type-def">(nil (quote (function (t t) (values (real 0) &amp;optional))))</code><div class="codex-docstring">Similarity metric type</div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">euclidean-dist</code><code class="codex-lambda-list">(x y)</code><div class="codex-docstring"><p>Calculate Euclidean distance for two vectors of single floats.</p><p>\(\rho(x, y) = \sqrt{\sum_k (x_k - y_k)^2}\)</p></div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">manhattan-dist</code><code class="codex-lambda-list">(x y)</code><div class="codex-docstring"><p>Calculate Manhattan distance for two vectors of single floats.</p><p>\(\rho(x, y) = \sum_k \lvert x_k - y_k \rvert \)</p></div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">chebyshev-dist</code><code class="codex-lambda-list">(x y)</code><div class="codex-docstring"><p>Calculate Chebyshev distance for two vectors of single floats.</p><p>\(\rho(x, y) = \max_k \lvert x_k - y_k \rvert \)</p></div></div>
+     
+   
+   <h1 id="random-forest">Random forest</h1>
+       Package <code>nndescent/random-forest</code>
+       
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">initial-approximation</code><code class="codex-lambda-list">(dist ps k &amp;optional (ntrees 10))</code><div class="codex-docstring">Make an initial approximation for k-NN connectivity graph of a
+point set <code>ps</code>. An optional parameter <code>ntrees</code> controls the number
+of random trees used in the process (the bigger value means more
+accurate result but is slower).</div></div>
+     
+   
+   <h1 id="nndescent">nndescent</h1>
+       Package <code>nndescent/nndescent</code>
+       
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">nndescent</code><code class="codex-lambda-list">(dist ps approx k &amp;key (max-iterations 5) (min-updates 0))</code><div class="codex-docstring">Return a k-NN connectivity graph of points in the set <code>ps</code>
+according to the metric <code>dist</code>. An initial approximation of the
+result <code>approx</code> is required for this algorithm. Parameters
+<code>max-iterations</code> and <code>min-updates</code> control the termination
+condition of the algorithm, namely the algorithm terminates if the
+number of updates of the graph is less than or equal to
+<code>min-updates</code>.</div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">nndescent!</code><code class="codex-lambda-list">(dist ps approx k &amp;key (max-iterations 5) (min-updates 0))</code><div class="codex-docstring">Inplace version of <code>nndescent</code>.</div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">knn</code><code class="codex-lambda-list">(dist ps queries graph k)</code><div class="codex-docstring">For each point \(q\) in the set <code>queries</code> find <code>k</code> points
+from the set <code>ps</code> closest to \(q\) using an approximate algorithm
+called nndescent. <code>graph</code> is l-NN connectivity graph for the points
+<code>ps</code>, \(l &gt; k\). For \(k = 1 \dots 10\) try \(l = 30 \dots
+40\).</div></div>
+     
+   
+   <h1 id="brute-force-algorithm">Brute-force algorithm</h1>
+       Package <code>nndescent/naive</code>
+       
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">knn-graph</code><code class="codex-lambda-list">(dist ps k)</code><div class="codex-docstring">Make an exact k-NN connectivity graph of a point set <code>ps</code>. This
+is an exact and brute-force \(O(n^2)\) algorithm.</div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">knn</code><code class="codex-lambda-list">(dist ps queries k)</code><div class="codex-docstring">For each point \(q\) in the set <code>queries</code> find <code>k</code> points
+from the set <code>ps</code> closest to \(q\). This is an exact and
+brute-force algorithm, \(O(nm)\) where \(n\) and \(m\) is a
+number of points in each set.</div></div>
+     
+   
+
+      </div>
+    </main>
+  </article>
+  <footer>
+    <div class="info">
+      Created with <a href="https://github.com/CommonDoc/codex">Codex</a>.
+    </div>
+  </footer>
+  <script>
+   HighlightLisp.highlight_auto();
+  </script>
+
+  </body>
+</html>
