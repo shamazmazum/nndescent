@@ -6,7 +6,7 @@
   (:local-nicknames (#:a #:alexandria))
   (:export #:queue #:make-queue #:copy-queue
            #:enqueue! #:enqueue-limited! #:in-queue-p
-           #:dequeue! #:peek #:size #:trim! #:map-into! #:do-queue
+           #:dequeue! #:peek #:size #:map-into! #:do-queue
            #:to-sorted-list #:with-queue-lock
            #:queue-size-limit-reached
            #:queue-size-limit-reached-queue #:queue-size-limit-reached-object))
@@ -16,7 +16,6 @@
 (deftype data-vector-type () '(simple-array data-type (*)))
 (deftype prio-type () 'real)
 (deftype prio-vector-type () '(simple-array prio-type (*)))
-(deftype extension-factor-type () '(integer 2 256))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Structure definition
@@ -26,22 +25,15 @@
   (data-vector (make-array 256 :element-type 'data-type) :type data-vector-type)
   (prio-vector (make-array 256 :element-type 'prio-type) :type prio-vector-type)
   (size 0 :type a:array-length)
-  (extension-factor 2 :type extension-factor-type)
-  (extend-queue-p t :type boolean)
   (locked nil :type boolean))
 
-(serapeum:-> make-queue (&optional a:array-index extension-factor-type boolean)
+(serapeum:-> make-queue (a:array-index)
              (values queue &optional))
-(defun make-queue (&optional
-                     (initial-storage-size 256)
-                     (extension-factor 2)
-                     (extend-queue-p t))
-  (%make :extension-factor extension-factor
-         :data-vector (make-array initial-storage-size
+(defun make-queue (storage-size)
+  (%make :data-vector (make-array storage-size
                                   :element-type 'data-type)
-         :prio-vector (make-array initial-storage-size
-                                  :element-type 'prio-type)
-         :extend-queue-p extend-queue-p))
+         :prio-vector (make-array storage-size
+                                  :element-type 'prio-type)))
 
 (defmethod print-object ((object queue) stream)
   (print-unreadable-object (object stream :type t :identity t)
@@ -49,45 +41,9 @@
 
 (serapeum:-> copy-queue (queue) (values queue &optional))
 (defun copy-queue (queue)
-  (%make :extension-factor (%extension-factor queue)
-         :size (%size queue)
-         :extend-queue-p (%extend-queue-p queue)
+  (%make :size (%size queue)
          :data-vector (copy-seq (%data-vector queue))
          :prio-vector (copy-seq (%prio-vector queue))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; A version of adjust-array that returns simple-arrays
-;;;; with all Common Lisp implementations. Implemented as a macro
-;;;; to avoid introducing runtime overhead.
-
-;;;; There are two branches:
-;;;;  - adjust-array: works with SBCL and ABCL, fails with
-;;;;    ECL and Clasp because the returned array is not simple
-;;;;  - make-array plus loop for copying: works with all compilers
-
-;;;; Performance notes:
-;;;;  - With ABCL, adjust-array is slightly faster than making a new array
-;;;;  - With SBCL, both versions have equal performance.
-;;;;  - Using cl:replace instead of an explicit loop does not improve
-;;;;    performance on any tested implementation.
-
-(defmacro adjust-array* (array new-length)
-  ;; Implementations that return a simple-array.
-  #+(or abcl sbcl)
-  `(adjust-array ,array ,new-length)
-  ;; Implementations that may return a non-simple array.
-  ;; Note: this code assumes a simple-vector as input.
-  #-(or abcl sbcl)
-  (a:with-gensyms (array* new-length* length* new-array* i*)
-    `(let* ((,array* ,array)
-            (,new-length* ,new-length)
-            (,length* (array-total-size ,array*))
-            (,new-array* (make-array ,new-length*
-                                     :element-type (array-element-type ,array*))))
-       (dotimes (,i* (min ,length* ,new-length*))
-         (setf (row-major-aref ,new-array* ,i*)
-               (row-major-aref ,array* ,i*)))
-       ,new-array*)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Dequeueing
@@ -174,19 +130,9 @@
   (symbol-macrolet ((data-vector (%data-vector queue))
                     (prio-vector (%prio-vector queue)))
     (let ((size (%size queue))
-          (extension-factor (%extension-factor queue))
           (length (array-total-size data-vector)))
       (when (>= size length)
-        (unless (%extend-queue-p queue)
-          (error 'queue-size-limit-reached :queue queue :element object))
-        (let ((new-length (max 1 (mod (* length extension-factor)
-                                      (ash 1 64)))))
-          (declare (type a:array-length new-length))
-          (when (<= new-length length)
-            (error "Integer overflow while resizing array: new-length ~D is ~
-                    smaller than old length ~D" new-length length))
-          (setf data-vector (adjust-array* data-vector new-length)
-                prio-vector (adjust-array* prio-vector new-length))))
+        (error 'queue-size-limit-reached :queue queue :element object))
       (setf (aref data-vector size) object
             (aref prio-vector size) priority)
       (heapify-upwards! data-vector prio-vector (%size queue))
@@ -229,14 +175,6 @@
 (declaim (inline size))
 (defun size (queue)
   (%size queue))
-
-(serapeum:-> trim! (queue) (values &optional))
-(declaim (inline trim!))
-(defun trim! (queue)
-  (let ((size (%size queue)))
-    (setf (%data-vector queue) (adjust-array* (%data-vector queue) size)
-          (%prio-vector queue) (adjust-array* (%prio-vector queue) size)))
-  (values))
 
 (serapeum:-> in-queue-p (queue t &key (:key function))
              (values t &optional))
