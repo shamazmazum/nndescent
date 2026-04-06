@@ -51,15 +51,18 @@
       <div class="content">
         <p>
    Suppose you have a set of 3-dimensional points <code>*ps*</code> and <code>*qs*</code>:
-   </p><pre><code class="lisp">(defparameter *ps*
-  (make-array 200000
+   </p><pre><code class="lisp">(defun make-points (n d)
+  (make-array n
               :initial-contents
-              (loop repeat 200000
+              (loop repeat n
                     collect
                     (make-array
-                     5
+                     d
                      :element-type 'single-float
-                     :initial-contents (loop repeat 5 collect (random 1f0))))))
+                     :initial-contents (loop repeat d collect (random 1f0))))))
+
+(defparameter *ps* (make-points 200000 3))
+(defparameter *qs* (make-points 100000 3))
    </code></pre><p>   Now, for each query point in <code>*qs*</code> you want to find 2 points from <code>*ps*</code>
    which are closest to the query point according to the Euclidean metric. You
    can do it the slow way, using a brute-force algorithm:
