@@ -21,10 +21,7 @@
                    unless (eq p %p) do
                      (q:enqueue-limited! q idx (- d) k))
              (q:to-sorted-list q))))
-    (let ((qs (loop for p across ps collect
-                    (let ((p p))
-                      (lparallel:future (knn-list p))))))
-      (map 'vector #'lparallel:force qs))))
+    (lparallel:pmap 'vector #'knn-list ps)))
 
 (serapeum:-> knn-single (p:dist simple-vector t a:positive-fixnum)
              (values list &optional))
