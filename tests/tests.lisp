@@ -46,17 +46,24 @@
   (for-all ((points (gen-points/list
                      (gen-integer :min 2000 :max 10000)
                      (gen-point 400 1f0)))
-            (conn   (gen-integer :min 10 :max 40)))
-    (let ((tree (rt:make-random-tree #'p:euclidean-plusp points conn)))
-      (loop for p in points
-            for neighbors = (rt:neighbor-points #'p:euclidean-plusp tree p)
-            do (is (member p neighbors :test #'eq))))))
+            (conn   (gen-integer :min 10 :max 40))
+            (dist   (gen-one-element #'p:euclidean-dist
+                                     #'p:manhattan-dist
+                                     #'p:chebyshev-dist)))
+    (let ((tree (rt:make-random-tree dist points conn)))
+      (is-true
+       (every
+        (lambda (p)
+          (let ((neighbors (rt:neighbor-points dist tree p)))
+            (member p neighbors :test #'eq)))
+        points)))))
 
 (test approximation
   (for-all ((ps (gen-points/vector
                  (gen-integer :min 1000 :max 5000)
                  (gen-point 3 1f0))))
-    (let ((approx (rf:initial-approximation p:*euclidean-operations* ps 30))
+    ;; FIXME: Fails with other metrics
+    (let ((approx (rf:initial-approximation #'p:euclidean-dist ps 30))
           (exact  (n:knn-graph #'p:euclidean-dist ps 30)))
       (flet ((dequeue (q)
                (mapcar #'g:pgen-point
@@ -74,11 +81,13 @@
 (test nndescent-improvement
   (for-all ((ps (gen-points/vector
                  (gen-integer :min 5000 :max 10000)
-                 (gen-point 3 1f0))))
+                 (gen-point 3 1f0)))
+            (dist (gen-one-element #'p:euclidean-dist
+                                   #'p:manhattan-dist
+                                   #'p:chebyshev-dist)))
     (let ((approx (nn:nndescent!
-                   #'p:euclidean-dist ps
-                   (rf:initial-approximation p:*euclidean-operations* ps 30) 30))
-          (exact  (n:knn-graph #'p:euclidean-dist ps 30)))
+                   dist ps (rf:initial-approximation dist ps 30) 30))
+          (exact  (n:knn-graph dist ps 30)))
       (is (< (loop for a across approx
                    for e across exact
                    count (not (equalp a e)))
@@ -96,7 +105,7 @@
                                    #'p:chebyshev-dist)))
     (let* ((graph (nn:nndescent!
                    #'p:euclidean-dist
-                   set (rf:initial-approximation p:*euclidean-operations* set 30) 30))
+                   set (rf:initial-approximation dist set 30) 30))
            (approx (nn:knn dist set qs graph 2))
            (exact  (n:knn  dist set qs 2)))
       (is (< (loop for e across approx
