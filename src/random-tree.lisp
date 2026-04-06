@@ -65,6 +65,10 @@
 (serapeum:-> make-random-tree (p:dist list a:positive-fixnum)
              (values node &optional))
 (defun make-random-tree (dist ps k)
+  "Make a random tree from a list of elements @c(ps). The tree has a
+property that close elements (accroding to the metric @c(dist)) do
+likely end up in the same leaf of the tree. A leaf of the tree has no
+more than @c(k) elements."
   (declare (optimize (speed 3)))
   (let ((length (length ps)))
     (if (<= length k)
@@ -89,6 +93,7 @@
 (serapeum:-> find-leaf (p:dist node t)
              (values node-leaf &optional))
 (defun find-leaf (dist tree p)
+  "Find a leaf of the tree which contains @c(p)."
   (declare (optimize (speed 3)))
   (if (leafp tree) tree
       (if (< (funcall dist p (node-inner-p1 tree))
@@ -99,6 +104,7 @@
 (serapeum:-> neighbor-points (p:dist node t)
              (values list &optional))
 (defun neighbor-points (dist tree p)
+  "Return a list of points which are close to @c(p)."
   (declare (optimize (speed 3)))
   (node-leaf-points
    (find-leaf dist tree p)))

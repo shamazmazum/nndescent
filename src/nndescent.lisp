@@ -83,6 +83,7 @@
                          (:min-updates    a:non-negative-fixnum))
              (values simple-vector &optional))
 (defun nndescent! (dist ps approx k &key (max-iterations 5) (min-updates 0))
+  "Improve accuracy of a k-NN connectivity graph @c(approx) inplace."
   (declare (optimize (speed 3)))
   (assert (= (length ps) (length approx)))
   (labels ((%go (gen)
@@ -101,6 +102,13 @@
                         (:min-updates    a:non-negative-fixnum))
              (values simple-vector &optional))
 (defun nndescent (dist ps approx k &key (max-iterations 5) (min-updates 0))
+  "Return a k-NN connectivity graph of points in the set @c(ps)
+according to the metric @c(dist). An initial approximation of the
+result @c(approx) is required for this algorithm. Parameters
+@c(max-iterations) and @c(min-updates) control the termination
+condition of the algorithm, namely the algorithm terminates if the
+number of updates of the graph is less than or equal to
+@c(min-updates)."
   (nndescent! dist ps (map 'vector #'q:copy-queue approx) k
               :max-iterations max-iterations
               :min-updates    min-updates))
@@ -141,6 +149,11 @@
 (serapeum:-> knn (p:dist simple-vector simple-vector simple-vector a:positive-fixnum)
              (values simple-vector &optional))
 (defun knn (dist ps queries graph k)
+    "For each point \\(q\\) in the set @c(queries) find @c(k) points
+from the set @c(ps) closest to \\(q\\) using an approximate algorithm
+called nndescent. @c(graph) is l-NN connectivity graph for the points
+@c(ps), \\(l > k\\). For \\(k = 1 \\dots 10\\) try \\(l = 30 \\dots
+40\\)."
   (declare (optimize (speed 3)))
   (lparallel:pmap
    'vector

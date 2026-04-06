@@ -30,6 +30,8 @@
 (serapeum:-> make-queue (a:array-index)
              (values queue &optional))
 (defun make-queue (storage-size)
+  "Make a priority queue. Priority is a real number. An element which
+has the lowest priority dequeues first."
   (%make :data-vector (make-array storage-size
                                   :element-type 'data-type)
          :prio-vector (make-array storage-size
@@ -90,6 +92,7 @@
 
 (serapeum:-> dequeue! (queue) (values t boolean &optional))
 (defun dequeue! (queue)
+  "Remove an element with the lowest priority from the queue and return it."
   (declare (optimize (speed 3)))
   (if (zerop (%size queue))
       (values nil nil)
@@ -126,6 +129,7 @@
 
 (serapeum:-> enqueue! (queue t prio-type) (values &optional))
 (defun enqueue! (queue object priority)
+  "Insert an object to the queue."
   (declare (optimize (speed 3)))
   (symbol-macrolet ((data-vector (%data-vector queue))
                     (prio-vector (%prio-vector queue)))
@@ -142,6 +146,9 @@
 (serapeum:-> enqueue-limited! (queue t prio-type a:array-length)
              (values boolean &optional))
 (defun enqueue-limited! (queue object priority limit)
+  "Insert an object to the queue. An element with the lowest priority
+can be removed, so that total amount of elements in the queue is no
+more than @c(LIMIT)."
   (declare (optimize (speed 3)))
   (cond
     ((< (%size queue) limit)
@@ -156,6 +163,7 @@
 ;;;; Introspection and maintenance
 
 (defmacro do-queue ((object queue &optional result) &body body)
+  "Loop for each element of the queue."
   (multiple-value-bind (forms declarations) (a:parse-body body)
     (a:with-gensyms (i)
       (a:once-only (queue)
@@ -167,6 +175,9 @@
 (serapeum:-> peek (queue) (values t boolean &optional))
 (declaim (inline peek))
 (defun peek (queue)
+  "Return @c((values e t)) where @c(e) is an element with the lowest
+priority without removing it if the queue is non-empty, otherwise
+return @c((values nil nil))."
   (if (zerop (%size queue))
       (values nil nil)
       (values (aref (%data-vector queue) 0) t)))
@@ -174,18 +185,22 @@
 (serapeum:-> size (queue) (values a:array-length &optional))
 (declaim (inline size))
 (defun size (queue)
+  "Get the number of elements in the queue."
   (%size queue))
 
 (serapeum:-> in-queue-p (queue t &key (:key function))
              (values t &optional))
 (declaim (inline in-queue-p))
 (defun in-queue-p (queue object &key (key #'identity))
+  "Check if an object is in the queue, O(n)."
   (declare (optimize (speed 3) (space 0)))
   (find object (%data-vector queue) :test #'eq :key key :end (%size queue)))
 
 (serapeum:-> to-sorted-list (queue &optional (function (t) (values t &optional)))
              (values list &optional))
 (defun to-sorted-list (q &optional (key #'identity))
+  "Return a list of elements in the queue, sorted by priority. The
+element with the highest priority comes first."
   (declare (optimize (speed 3)))
   (let ((q (copy-queue q)) acc)
     (loop for obj = (dequeue! q)
@@ -197,6 +212,8 @@
              (values &optional))
 (declaim (inline map-into!))
 (defun map-into! (q f)
+  "Replace elements \\(e_0, e_1, \\dots, e_n\\) in the queue with
+\\(f(e_0), f(e_1), \\dots, f(e_n)\\)."
   (let ((vector (%data-vector q)))
     (dotimes (i (%size q))
       (setf (aref vector i)
@@ -212,6 +229,8 @@
   (setf (%locked lock) nil))
 
 (defmacro with-queue-lock ((queue) &body body)
+  "Run @c(body) in a critical section guarded by a spinlock associated
+with the queue."
   (let ((sym (gensym)))
     `(let ((,sym ,queue))
        (acquire-lock ,sym)

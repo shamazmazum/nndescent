@@ -9,6 +9,7 @@
 (in-package :nndescent/point)
 
 (deftype dist ()
+  "Similarity metric type"
   '(function (t t)
     (values (real 0) &optional)))
 
@@ -16,38 +17,47 @@
 (serapeum:-> euclidean-dist ((simple-array single-float (*))
                              (simple-array single-float (*)))
              (values (single-float 0f0) &optional))
-(defun euclidean-dist (p1 p2)
+(defun euclidean-dist (x y)
+  "Calculate Euclidean distance for two vectors of single floats.
+
+\\(\\rho(x, y) = \\sqrt{\\sum_k (x_k - y_k)^2}\\)"
   (declare (optimize (speed 3)))
-  (let ((n (length p1))
+  (let ((n (length x))
         (state (vs:sum-state 0.0)))
     (declare (dynamic-extent state))
-    (assert (= n (length p2)))
+    (assert (= n (length y)))
     ;; SETQ is for speed
     (loop for i below n do
-          (setq state (vs:add state (expt (- (aref p1 i) (aref p2 i)) 2))))
+          (setq state (vs:add state (expt (- (aref x i) (aref y i)) 2))))
     (sqrt (vs:state-sum state))))
 
 (serapeum:-> manhattan-dist ((simple-array single-float (*))
                              (simple-array single-float (*)))
              (values (single-float 0f0) &optional))
-(defun manhattan-dist (p1 p2)
+(defun manhattan-dist (x y)
+  "Calculate Manhattan distance for two vectors of single floats.
+
+\\(\\rho(x, y) = \\lVert \\sum_k (x_k - y_k)^2 \\rVert \\)"
   (declare (optimize (speed 3)))
-  (let ((n (length p1))
+  (let ((n (length x))
         (state (vs:sum-state 0.0)))
     (declare (dynamic-extent state))
-    (assert (= n (length p2)))
+    (assert (= n (length y)))
     (loop for i below n do
-          (setq state (vs:add state (abs (- (aref p1 i) (aref p2 i))))))
+          (setq state (vs:add state (abs (- (aref x i) (aref y i))))))
     (vs:state-sum state)))
 
 (serapeum:-> chebyshev-dist ((simple-array single-float (*))
                              (simple-array single-float (*)))
              (values (single-float 0f0) &optional))
-(defun chebyshev-dist (p1 p2)
+(defun chebyshev-dist (x y)
+  "Calculate Chebyshev distance for two vectors of single floats.
+
+\\(\\rho(x, y) = \\max_k \\lVert (x_k - y_k)^2 \\)"
   (declare (optimize (speed 3)))
-  (let ((n (length p1))
+  (let ((n (length x))
         (result 0f0))
-    (assert (= n (length p2)))
+    (assert (= n (length y)))
     (loop for i below n do
-      (setq result (max result (abs (- (aref p1 i) (aref p2 i))))))
+      (setq result (max result (abs (- (aref x i) (aref y i))))))
     result))
