@@ -26,15 +26,18 @@ on World wide web. – 2011. – С. 577-586.
    @title(How to use)
    Suppose you have a set of 3-dimensional points @c(*ps*) and @c(*qs*):
    @begin[lang=lisp](code)
-(defparameter *ps*
-  (make-array 200000
+(defun make-points (n d)
+  (make-array n
               :initial-contents
-              (loop repeat 200000
+              (loop repeat n
                     collect
                     (make-array
-                     5
+                     d
                      :element-type 'single-float
-                     :initial-contents (loop repeat 5 collect (random 1f0))))))
+                     :initial-contents (loop repeat d collect (random 1f0))))))
+
+(defparameter *ps* (make-points 200000 3))
+(defparameter *qs* (make-points 100000 3))
    @end(code)
 
    Now, for each query point in @c(*qs*) you want to find 2 points from @c(*ps*)
