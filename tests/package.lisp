@@ -7,4 +7,4 @@
                     (#:rf #:nndescent/random-forest)
                     (#:n  #:nndescent/naive)
                     (#:nn #:nndescent/nndescent))
-  (:export #:run-tests))
+  (:export #:run-tests #:run-tests-ci))

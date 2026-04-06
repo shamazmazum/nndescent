@@ -38,6 +38,11 @@
                      (results-status status)))
                  '(random-tree nndescent))))
 
+(defun run-tests-ci ()
+  (setq *random-state* (make-random-state t)
+        lparallel:*kernel* (lparallel:make-kernel 6))
+  (run-tests))
+
 (def-suite random-tree :description "Test random trees")
 (def-suite nndescent   :description "Test nndescent algorithm")
 
