@@ -1,7 +1,6 @@
 (defpackage nndescent/point
   (:use #:cl)
   (:shadow #:plusp)
-  (:local-nicknames (#:vs #:vector-sum))
   (:export #:dist
            #:euclidean-dist
            #:manhattan-dist
@@ -22,14 +21,17 @@
 
 \\(\\rho(x, y) = \\sqrt{\\sum_k (x_k - y_k)^2}\\)"
   (declare (optimize (speed 3)))
-  (let ((n (length x))
-        (state (vs:sum-state 0.0)))
-    (declare (dynamic-extent state))
+  (let ((n (length x)))
     (assert (= n (length y)))
-    ;; SETQ is for speed
-    (loop for i below n do
-          (setq state (vs:add state (expt (- (aref x i) (aref y i)) 2))))
-    (sqrt (vs:state-sum state))))
+    (float
+     (sqrt
+      (loop for i below n
+            sum
+            (expt (- (float (aref x i) 0d0)
+                     (float (aref y i) 0d0))
+                  2)
+            double-float))
+     0f0)))
 
 (serapeum:-> manhattan-dist ((simple-array single-float (*))
                              (simple-array single-float (*)))
@@ -39,13 +41,15 @@
 
 \\(\\rho(x, y) = \\sum_k \\lvert x_k - y_k \\rvert \\)"
   (declare (optimize (speed 3)))
-  (let ((n (length x))
-        (state (vs:sum-state 0.0)))
-    (declare (dynamic-extent state))
+  (let ((n (length x)))
     (assert (= n (length y)))
-    (loop for i below n do
-          (setq state (vs:add state (abs (- (aref x i) (aref y i))))))
-    (vs:state-sum state)))
+    (float
+     (loop for i below n
+           sum
+           (abs (- (float (aref x i) 0d0)
+                   (float (aref y i) 0d0)))
+           double-float)
+     0f0)))
 
 (serapeum:-> chebyshev-dist ((simple-array single-float (*))
                              (simple-array single-float (*)))
