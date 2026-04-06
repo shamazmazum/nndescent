@@ -21,7 +21,9 @@ jobs:
           echo "${HOME}/.roswell/bin" >> $GITHUB_PATH
       - name: Build documentation
         run: |
-          ros -s nndescent/doc -e '(codex:document :nndescent)'
+          cd $GITHUB_WORKSPACE
+          qlot install
+          qlot exec ros -s codex -e '(codex:document :nndescent)'
       - name: Deploy to GH pages
         uses: peaceiris/actions-gh-pages@v3
         with:
