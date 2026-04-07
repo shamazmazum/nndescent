@@ -30,7 +30,10 @@
     :pathname "tests"
     :components ((:file "package")
                  (:file "tests"))
-    :depends-on (:fiveam :nndescent))
+    :depends-on (:nndescent
+                 :fiveam
+                 :approx
+                 :vector-sum))
 
 ;; For qlot
 (defsystem :nndescent/doc

@@ -25,38 +25,40 @@
                     (declare (inline %go))
                     (let ((n (length x)))
                       (assert (= n (length y)))
-                      (let ((p1 0d0)
-                            (p2 0d0)
-                            (p3 0d0)
-                            (stop (logand n (lognot 1))))
-                        (declare (type double-float p1 p2 p3))
-                        (loop for i below stop by 2 do
+                      (let ((p1 0f0)
+                            (p2 0f0)
+                            (p3 0f0)
+                            (p4 0f0)
+                            (p5 0f0)
+                            (stop (logand n (lognot 3))))
+                        (declare (type single-float p1 p2 p3 p4 p5))
+                        (loop for i below stop by 4 do
                           (setq p1 (,accfn p1 (%go (+ i 0))))
-                          (setq p2 (,accfn p2 (%go (+ i 1)))))
-                        (when (oddp n)
-                          (setq p3 (%go (1- n))))
-                        (float
-                         (,finfn
-                          (,accfn p1 p2 p3))
-                         0f0))))))))
+                          (setq p2 (,accfn p2 (%go (+ i 1))))
+                          (setq p3 (,accfn p3 (%go (+ i 2))))
+                          (setq p4 (,accfn p4 (%go (+ i 3)))))
+                        (loop for i from stop below n do
+                          (setq p5 (,accfn p5 (%go i))))
+                        (,finfn
+                         (,accfn p1 p2 p3 p4 p5)))))))))
   (frob euclidean-dist + sqrt
-        (expt (- (float (aref x idx) 0d0)
-                 (float (aref y idx) 0d0))
+        (expt (- (aref x idx)
+                 (aref y idx))
               2)
         "Calculate Euclidean distance for two vectors of single floats.
 
 \\(\ρ(x, y) = \\sqrt{\\sum_k (x_k - y_k)^2}\\)")
 
   (frob manhattan-dist + identity
-        (abs (- (float (aref x idx) 0d0)
-                (float (aref y idx) 0d0)))
+        (abs (- (aref x idx)
+                (aref y idx)))
         "Calculate Manhattan distance for two vectors of single floats.
 
 \\(\\rho(x, y) = \\sum_k \\lvert x_k - y_k \\rvert \\)")
 
   (frob chebyshev-dist max identity
-        (abs (- (float (aref x idx) 0d0)
-                (float (aref y idx) 0d0)))
+        (abs (- (aref x idx)
+                (aref y idx)))
         "Calculate Chebyshev distance for two vectors of single floats.
 
 \\(\\rho(x, y) = \\max_k \\lvert x_k - y_k \\rvert \\)"))

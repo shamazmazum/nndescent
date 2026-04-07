@@ -36,15 +36,70 @@
                    (let ((status (run suite)))
                      (explain! status)
                      (results-status status)))
-                 '(random-tree nndescent))))
+                 '(metrics random-tree nndescent))))
 
 (defun run-tests-ci ()
   (setq *random-state* (make-random-state t)
         lparallel:*kernel* (lparallel:make-kernel 6))
   (run-tests))
 
+(def-suite metrics     :description "Test metric functions")
 (def-suite random-tree :description "Test random trees")
 (def-suite nndescent   :description "Test nndescent algorithm")
+
+;; Accurate metric functions
+(serapeum:-> euclidean-dist ((simple-array single-float (*))
+                             (simple-array single-float (*)))
+             (values single-float &optional))
+(defun euclidean-dist (x y)
+  (let ((state (vs:sum-state 0.0)))
+    (declare (dynamic-extent state))
+    (loop for i below (length x)
+          do (setq state (vs:add state (expt (- (aref x i) (aref y i)) 2))))
+    (sqrt (vs:state-sum state))))
+
+(serapeum:-> manhattan-dist ((simple-array single-float (*))
+                             (simple-array single-float (*)))
+             (values single-float &optional))
+(defun manhattan-dist (x y)
+  (let ((state (vs:sum-state 0.0)))
+    (declare (dynamic-extent state))
+    (loop for i below (length x)
+          do (setq state (vs:add state (abs (- (aref x i) (aref y i))))))
+    (vs:state-sum state)))
+
+(serapeum:-> chebyshev-dist ((simple-array single-float (*))
+                             (simple-array single-float (*)))
+             (values single-float &optional))
+(defun chebyshev-dist (x y)
+  (loop for i below (length x)
+        maximizing (abs (- (aref x i) (aref y i)))))
+
+(in-suite metrics)
+
+(test euclidean
+  (for-all* ((d (gen-integer :min 2 :max 50))
+             (x (gen-point d 1f0))
+             (y (gen-point d 1f0)))
+    (is-true
+     (a:approxp (  euclidean-dist x y)
+                (p:euclidean-dist x y)))))
+
+(test manhattan
+  (for-all* ((d (gen-integer :min 2 :max 50))
+             (x (gen-point d 1f0))
+             (y (gen-point d 1f0)))
+    (is-true
+     (a:approxp (  manhattan-dist x y)
+                (p:manhattan-dist x y)))))
+
+(test chebyshev
+  (for-all* ((d (gen-integer :min 2 :max 50))
+             (x (gen-point d 1f0))
+             (y (gen-point d 1f0)))
+    (is-true
+     (a:approxp (  chebyshev-dist x y)
+                (p:chebyshev-dist x y)))))
 
 (in-suite random-tree)
 (test neighbors

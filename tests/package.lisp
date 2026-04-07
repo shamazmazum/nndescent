@@ -6,5 +6,7 @@
                     (#:rt #:nndescent/random-tree)
                     (#:rf #:nndescent/random-forest)
                     (#:n  #:nndescent/naive)
-                    (#:nn #:nndescent/nndescent))
+                    (#:nn #:nndescent/nndescent)
+                    (#:vs #:vector-sum)
+                    (#:a  #:approx))
   (:export #:run-tests #:run-tests-ci))
