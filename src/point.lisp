@@ -13,55 +13,50 @@
     (values (real 0) &optional)))
 
 ;; Some commonly used metrics
-(serapeum:-> euclidean-dist ((simple-array single-float (*))
-                             (simple-array single-float (*)))
-             (values (single-float 0f0) &optional))
-(defun euclidean-dist (x y)
-  "Calculate Euclidean distance for two vectors of single floats.
+(macrolet ((frob (name accfn finfn expr docstring)
+             `(progn
+                (serapeum:-> ,name ((simple-array single-float (*))
+                                    (simple-array single-float (*)))
+                             (values (single-float 0f0) &optional))
+                (defun ,name (x y)
+                  ,docstring
+                  (declare (optimize (speed 3) (sb-c:insert-array-bounds-checks 0)))
+                  (flet ((%go (idx) ,expr))
+                    (declare (inline %go))
+                    (let ((n (length x)))
+                      (assert (= n (length y)))
+                      (let ((p1 0d0)
+                            (p2 0d0)
+                            (p3 0d0)
+                            (stop (logand n (lognot 1))))
+                        (declare (type double-float p1 p2 p3))
+                        (loop for i below stop by 2 do
+                          (setq p1 (,accfn p1 (%go (+ i 0))))
+                          (setq p2 (,accfn p2 (%go (+ i 1)))))
+                        (when (oddp n)
+                          (setq p3 (%go (1- n))))
+                        (float
+                         (,finfn
+                          (,accfn p1 p2 p3))
+                         0f0))))))))
+  (frob euclidean-dist + sqrt
+        (expt (- (float (aref x idx) 0d0)
+                 (float (aref y idx) 0d0))
+              2)
+        "Calculate Euclidean distance for two vectors of single floats.
 
-\\(\\rho(x, y) = \\sqrt{\\sum_k (x_k - y_k)^2}\\)"
-  (declare (optimize (speed 3)))
-  (let ((n (length x)))
-    (assert (= n (length y)))
-    (float
-     (sqrt
-      (loop for i below n
-            sum
-            (expt (- (float (aref x i) 0d0)
-                     (float (aref y i) 0d0))
-                  2)
-            double-float))
-     0f0)))
+\\(\ρ(x, y) = \\sqrt{\\sum_k (x_k - y_k)^2}\\)")
 
-(serapeum:-> manhattan-dist ((simple-array single-float (*))
-                             (simple-array single-float (*)))
-             (values (single-float 0f0) &optional))
-(defun manhattan-dist (x y)
-  "Calculate Manhattan distance for two vectors of single floats.
+  (frob manhattan-dist + identity
+        (abs (- (float (aref x idx) 0d0)
+                (float (aref y idx) 0d0)))
+        "Calculate Manhattan distance for two vectors of single floats.
 
-\\(\\rho(x, y) = \\sum_k \\lvert x_k - y_k \\rvert \\)"
-  (declare (optimize (speed 3)))
-  (let ((n (length x)))
-    (assert (= n (length y)))
-    (float
-     (loop for i below n
-           sum
-           (abs (- (float (aref x i) 0d0)
-                   (float (aref y i) 0d0)))
-           double-float)
-     0f0)))
+\\(\\rho(x, y) = \\sum_k \\lvert x_k - y_k \\rvert \\)")
 
-(serapeum:-> chebyshev-dist ((simple-array single-float (*))
-                             (simple-array single-float (*)))
-             (values (single-float 0f0) &optional))
-(defun chebyshev-dist (x y)
-  "Calculate Chebyshev distance for two vectors of single floats.
+  (frob chebyshev-dist max identity
+        (abs (- (float (aref x idx) 0d0)
+                (float (aref y idx) 0d0)))
+        "Calculate Chebyshev distance for two vectors of single floats.
 
-\\(\\rho(x, y) = \\max_k \\lvert x_k - y_k \\rvert \\)"
-  (declare (optimize (speed 3)))
-  (let ((n (length x))
-        (result 0f0))
-    (assert (= n (length y)))
-    (loop for i below n do
-      (setq result (max result (abs (- (aref x i) (aref y i))))))
-    result))
+\\(\\rho(x, y) = \\max_k \\lvert x_k - y_k \\rvert \\)"))
