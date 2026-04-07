@@ -1,3 +1,5 @@
+(require 'sb-simd)
+
 (defsystem :nndescent
   :name :nndescent
   :version "0.1"
