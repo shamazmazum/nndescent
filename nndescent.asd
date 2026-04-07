@@ -1,3 +1,4 @@
+#+(and sbcl x86-64)
 (require 'sb-simd)
 
 (defsystem :nndescent
