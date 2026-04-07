@@ -83,26 +83,32 @@
 (serapeum:-> nndescent! (m:dist simple-vector simple-vector a:positive-fixnum &key
                          (:max-iterations g:iterations)
                          (:min-updates    a:non-negative-fixnum))
-             (values simple-vector &optional))
+             (values simple-vector g:iterations (integer 0) &optional))
 (defun nndescent! (dist ps approx k &key (max-iterations 5) (min-updates 0))
   "Inplace version of @c(nndescent)."
   (declare (optimize (speed 3)))
   (assert (= (length ps) (length approx)))
-  (labels ((%go (gen)
-             (if (zerop (- max-iterations gen)) approx
-                 (let ((updates (nndescent-update! dist ps approx k gen)))
-                   (if (<= updates min-updates) approx
-                       (%go (1+ gen)))))))
-    (%go 0))
-  (map 'vector
-       (lambda (q)
-         (q:to-sorted-list q #'g:pgen-point))
-       approx))
+  (labels ((%go (gen updates)
+             (if (zerop (- max-iterations gen))
+                 (values gen updates)
+                 (let ((updates (nndescent-update! dist ps approx k gen))
+                       (next-gen (1+ gen)))
+                   (if (<= updates min-updates)
+                       (values next-gen updates)
+                       (%go    next-gen updates))))))
+    (multiple-value-bind (gens updates)
+        (%go 0 0)
+      (values
+       (map 'vector
+            (lambda (q)
+              (q:to-sorted-list q #'g:pgen-point))
+            approx)
+       gens updates))))
 
 (serapeum:-> nndescent (m:dist simple-vector simple-vector a:positive-fixnum &key
                         (:max-iterations g:iterations)
                         (:min-updates    a:non-negative-fixnum))
-             (values simple-vector &optional))
+             (values simple-vector g:iterations (integer 0) &optional))
 (defun nndescent (dist ps approx k &key (max-iterations 5) (min-updates 0))
   "Return a k-NN connectivity graph of points in the set @c(ps)
 according to the metric @c(dist). An initial approximation of the
@@ -110,7 +116,8 @@ result @c(approx) is required for this algorithm. Parameters
 @c(max-iterations) and @c(min-updates) control the termination
 condition of the algorithm, namely the algorithm terminates if the
 number of updates of the graph is less than or equal to
-@c(min-updates)."
+@c(min-updates). Also return the number of iterations and the number
+of graph updates at the last iterations."
   (nndescent! dist ps (map 'vector #'q:copy-queue approx) k
               :max-iterations max-iterations
               :min-updates    min-updates))
