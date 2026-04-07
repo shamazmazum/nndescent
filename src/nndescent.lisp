@@ -2,7 +2,7 @@
   (:use #:cl)
   (:local-nicknames (#:a  #:alexandria)
                     (#:q  #:nndescent/pqueue)
-                    (#:p  #:nndescent/point)
+                    (#:m  #:nndescent/metrics)
                     (#:g  #:nndescent/generation)
                     (#:rf #:nndescent/random-forest))
   (:export #:nndescent!
@@ -23,7 +23,7 @@
                     (svref result (g:pgen-point v)))))
     result))
 
-(serapeum:-> nndescent-update! (p:dist simple-vector
+(serapeum:-> nndescent-update! (m:dist simple-vector
                                 simple-vector
                                 a:positive-fixnum
                                 a:non-negative-fixnum)
@@ -80,7 +80,7 @@
      updates
      :initial-value 0)))
 
-(serapeum:-> nndescent! (p:dist simple-vector simple-vector a:positive-fixnum &key
+(serapeum:-> nndescent! (m:dist simple-vector simple-vector a:positive-fixnum &key
                          (:max-iterations g:iterations)
                          (:min-updates    a:non-negative-fixnum))
              (values simple-vector &optional))
@@ -99,7 +99,7 @@
          (q:to-sorted-list q #'g:pgen-point))
        approx))
 
-(serapeum:-> nndescent (p:dist simple-vector simple-vector a:positive-fixnum &key
+(serapeum:-> nndescent (m:dist simple-vector simple-vector a:positive-fixnum &key
                         (:max-iterations g:iterations)
                         (:min-updates    a:non-negative-fixnum))
              (values simple-vector &optional))
@@ -115,7 +115,7 @@ number of updates of the graph is less than or equal to
               :max-iterations max-iterations
               :min-updates    min-updates))
 
-(serapeum:-> knn-single (p:dist simple-vector t simple-vector a:positive-fixnum)
+(serapeum:-> knn-single (m:dist simple-vector t simple-vector a:positive-fixnum)
              (values list &optional))
 (defun knn-single (dist ps p graph k)
   (declare (optimize (speed 3)))
@@ -148,7 +148,7 @@ number of updates of the graph is less than or equal to
      q (lambda (seen)
          (svref ps (g:seen-point seen))))))
 
-(serapeum:-> knn (p:dist simple-vector simple-vector simple-vector a:positive-fixnum)
+(serapeum:-> knn (m:dist simple-vector simple-vector simple-vector a:positive-fixnum)
              (values simple-vector &optional))
 (defun knn (dist ps queries graph k)
     "For each point \\(q\\) in the set @c(queries) find @c(k) points

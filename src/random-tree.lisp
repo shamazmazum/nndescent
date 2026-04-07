@@ -2,7 +2,7 @@
   (:use #:cl)
   (:shadow #:plusp)
   (:local-nicknames (#:a #:alexandria))
-  (:local-nicknames (#:p #:nndescent/point))
+  (:local-nicknames (#:m #:nndescent/metrics))
   (:export #:node
            #:make-random-tree
            #:neighbor-points
@@ -62,7 +62,7 @@
     (let ((xs (drop xs k1)))
       (values (car xs) (nth (- k2 k1) xs)))))
 
-(serapeum:-> make-random-tree (p:dist list a:positive-fixnum)
+(serapeum:-> make-random-tree (m:dist list a:positive-fixnum)
              (values node &optional))
 (defun make-random-tree (dist ps k)
   "Make a random tree from a list of elements @c(ps). The tree has a
@@ -90,7 +90,7 @@ more than @c(k) elements."
                (make-random-tree dist s1 k)
                (make-random-tree dist s2 k))))))))
 
-(serapeum:-> find-leaf (p:dist node t)
+(serapeum:-> find-leaf (m:dist node t)
              (values node-leaf &optional))
 (defun find-leaf (dist tree p)
   "Find a leaf of the tree which contains @c(p)."
@@ -101,7 +101,7 @@ more than @c(k) elements."
           (find-leaf dist (node-inner-s1 tree) p)
           (find-leaf dist (node-inner-s2 tree) p))))
 
-(serapeum:-> neighbor-points (p:dist node t)
+(serapeum:-> neighbor-points (m:dist node t)
              (values list &optional))
 (defun neighbor-points (dist tree p)
   "Return a list of points which are close to @c(p)."

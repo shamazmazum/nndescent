@@ -1,7 +1,7 @@
 (defpackage nndescent/naive
   (:use #:cl)
   (:local-nicknames (#:a #:alexandria)
-                    (#:p #:nndescent/point)
+                    (#:m #:nndescent/metrics)
                     (#:q #:nndescent/pqueue))
   (:export #:knn-graph #:knn))
 (in-package :nndescent/naive)
@@ -9,7 +9,7 @@
 ;; Here point sets could be lists, but I keep them simple-vectors for
 ;; consistency with nndescent.
 
-(serapeum:-> knn-graph (p:dist simple-vector a:positive-fixnum)
+(serapeum:-> knn-graph (m:dist simple-vector a:positive-fixnum)
              (values simple-vector &optional))
 (defun knn-graph (dist ps k)
   "Make an exact k-NN connectivity graph of a point set @c(ps). This
@@ -25,7 +25,7 @@ is an exact and brute-force \\(O(n^2)\\) algorithm."
              (q:to-sorted-list q))))
     (lparallel:pmap 'vector #'knn-list ps)))
 
-(serapeum:-> knn-single (p:dist simple-vector t a:positive-fixnum)
+(serapeum:-> knn-single (m:dist simple-vector t a:positive-fixnum)
              (values list &optional))
 (defun knn-single (dist ps p k)
   (declare (optimize (speed 3)))
@@ -35,7 +35,7 @@ is an exact and brute-force \\(O(n^2)\\) algorithm."
             (q:enqueue-limited! q %p (- d) k))
     (q:to-sorted-list q)))
 
-(serapeum:-> knn (p:dist simple-vector simple-vector a:positive-fixnum)
+(serapeum:-> knn (m:dist simple-vector simple-vector a:positive-fixnum)
              (values simple-vector &optional))
 (defun knn (dist ps queries k)
   "For each point \\(q\\) in the set @c(queries) find @c(k) points

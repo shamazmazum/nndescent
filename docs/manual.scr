@@ -46,7 +46,7 @@ on World wide web. – 2011. – С. 577-586.
    @begin[lang=lisp](code)
 (time
  (defparameter *slow*
-   (nndescent/naive:knn #'nndescent/point:euclidean-dist *ps* *qs* 2)))
+   (nndescent/naive:knn #'nndescent/metrics:euclidean-dist *ps* *qs* 2)))
    @end(code)
    This takes approximately 68 seconds of execution time with 6 workers
    (nndescent is parallelized with lparallel, so don't forget to create a new
@@ -60,9 +60,9 @@ on World wide web. – 2011. – С. 577-586.
 (time
  (defparameter *graph*
    (nndescent/nndescent:nndescent
-    #'nndescent/point:euclidean-dist *ps*
+    #'nndescent/metrics:euclidean-dist *ps*
     (nndescent/random-forest:initial-approximation
-     #'nndescent/point:euclidean-dist *ps* 30)
+     #'nndescent/metrics:euclidean-dist *ps* 30)
     30 :max-iterations 20)))
    @end(code)
    This takes 6.5 seconds of execution time. At first we do an initial
@@ -73,7 +73,7 @@ on World wide web. – 2011. – С. 577-586.
    @begin[lang=lisp](code)
 (time
  (defparameter *fast*
-   (nndescent/nndescent:knn #'nndescent/point:euclidean-dist *ps* *qs* *graph* 2)))
+   (nndescent/nndescent:knn #'nndescent/metrics:euclidean-dist *ps* *qs* *graph* 2)))
    @end(code)
    This takes 0.9 seconds. So we have approximately 68/(0.9+6.5)=@b(9x) speed-up
    compared to the brute-force algorithm.
@@ -92,8 +92,9 @@ on World wide web. – 2011. – С. 577-586.
    @title(API)
    @begin(section)
        @title(Common metrics)
-       Package @c(nndescent/point)
-       @cl:with-package[name="nndescent/point"](
+       Package @c(nndescent/metrics). These metrics are specialized for
+       @c((simple-array single-float (*))) vectors.
+       @cl:with-package[name="nndescent/metrics"](
        @cl:doc(type dist)
        @cl:doc(function euclidean-dist)
        @cl:doc(function manhattan-dist)

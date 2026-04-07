@@ -13,7 +13,7 @@
   :depends-on (:alexandria
                :serapeum
                :lparallel
-               :nndescent/point
+               :nndescent/metrics
                :nndescent/random-tree
                :nndescent/generation
                :nndescent/pqueue

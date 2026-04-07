@@ -1,11 +1,13 @@
-(defpackage nndescent/point
+(defpackage nndescent/metrics
+  ;; For backward compatibility
+  (:nicknames #:nndescent/point)
   (:use #:cl)
   (:shadow #:plusp)
   (:export #:dist
            #:euclidean-dist
            #:manhattan-dist
            #:chebyshev-dist))
-(in-package :nndescent/point)
+(in-package :nndescent/metrics)
 
 (deftype dist ()
   "Similarity metric type"

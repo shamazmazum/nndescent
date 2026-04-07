@@ -3,15 +3,15 @@
   (:shadow #:plusp)
   (:local-nicknames (#:a #:alexandria)
                     (#:q  #:nndescent/pqueue)
-                    (#:p  #:nndescent/point)
+                    (#:m  #:nndescent/metrics)
                     (#:g  #:nndescent/generation)
                     (#:rt #:nndescent/random-tree))
   (:export #:dist
            #:initial-approximation))
 (in-package :nndescent/random-forest)
 
-(serapeum:-> dist (simple-vector p:dist)
-             (values p:dist &optional))
+(serapeum:-> dist (simple-vector m:dist)
+             (values m:dist &optional))
 (defun dist (vector dist)
   (declare (optimize (speed 3)))
   (lambda (i1 i2)
@@ -19,7 +19,7 @@
              (svref vector i1)
              (svref vector i2))))
 
-(serapeum:-> make-random-forest (simple-vector p:dist a:positive-fixnum a:positive-fixnum)
+(serapeum:-> make-random-forest (simple-vector m:dist a:positive-fixnum a:positive-fixnum)
              (values list &optional))
 (defun make-random-forest (ps dist k n)
   "Collect @c(n) trees in parallel."
@@ -33,7 +33,7 @@
                      (dist ps dist)
                      indices k))))))
 
-(serapeum:-> initial-approximation (p:dist simple-vector a:positive-fixnum
+(serapeum:-> initial-approximation (m:dist simple-vector a:positive-fixnum
                                     &optional a:positive-fixnum)
              (values simple-vector &optional))
 (defun initial-approximation (dist ps k &optional (ntrees 10))

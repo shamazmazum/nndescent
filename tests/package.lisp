@@ -1,6 +1,6 @@
 (defpackage nndescent/tests
   (:use #:cl #:fiveam)
-  (:local-nicknames (#:p  #:nndescent/point)
+  (:local-nicknames (#:m  #:nndescent/metrics)
                     (#:q  #:nndescent/pqueue)
                     (#:g  #:nndescent/generation)
                     (#:rt #:nndescent/random-tree)

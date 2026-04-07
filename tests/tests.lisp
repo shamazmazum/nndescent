@@ -83,7 +83,7 @@
              (y (gen-point d 1f0)))
     (is-true
      (a:approxp (  euclidean-dist x y)
-                (p:euclidean-dist x y)))))
+                (m:euclidean-dist x y)))))
 
 (test manhattan
   (for-all* ((d (gen-integer :min 2 :max 50))
@@ -91,7 +91,7 @@
              (y (gen-point d 1f0)))
     (is-true
      (a:approxp (  manhattan-dist x y)
-                (p:manhattan-dist x y)))))
+                (m:manhattan-dist x y)))))
 
 (test chebyshev
   (for-all* ((d (gen-integer :min 2 :max 50))
@@ -99,7 +99,7 @@
              (y (gen-point d 1f0)))
     (is-true
      (a:approxp (  chebyshev-dist x y)
-                (p:chebyshev-dist x y)))))
+                (m:chebyshev-dist x y)))))
 
 (in-suite random-tree)
 (test neighbors
@@ -107,9 +107,9 @@
                      (gen-integer :min 2000 :max 10000)
                      (gen-point 400 1f0)))
             (conn   (gen-integer :min 10 :max 40))
-            (dist   (gen-one-element #'p:euclidean-dist
-                                     #'p:manhattan-dist
-                                     #'p:chebyshev-dist)))
+            (dist   (gen-one-element #'m:euclidean-dist
+                                     #'m:manhattan-dist
+                                     #'m:chebyshev-dist)))
     (let ((tree (rt:make-random-tree dist points conn)))
       (is-true
        (every
@@ -123,8 +123,8 @@
                  (gen-integer :min 1000 :max 5000)
                  (gen-point 3 1f0))))
     ;; FIXME: Fails with other metrics
-    (let ((approx (rf:initial-approximation #'p:euclidean-dist ps 30))
-          (exact  (n:knn-graph #'p:euclidean-dist ps 30)))
+    (let ((approx (rf:initial-approximation #'m:euclidean-dist ps 30))
+          (exact  (n:knn-graph #'m:euclidean-dist ps 30)))
       (flet ((dequeue (q)
                (mapcar #'g:pgen-point
                        (q:to-sorted-list q))))
@@ -142,9 +142,9 @@
   (for-all ((ps (gen-points/vector
                  (gen-integer :min 5000 :max 10000)
                  (gen-point 3 1f0)))
-            (dist (gen-one-element #'p:euclidean-dist
-                                   #'p:manhattan-dist
-                                   #'p:chebyshev-dist)))
+            (dist (gen-one-element #'m:euclidean-dist
+                                   #'m:manhattan-dist
+                                   #'m:chebyshev-dist)))
     (let ((approx (nn:nndescent!
                    dist ps (rf:initial-approximation dist ps 30) 30))
           (exact  (n:knn-graph dist ps 30)))
@@ -160,12 +160,11 @@
             (qs  (gen-points/vector
                   (gen-integer :min 1000 :max 5000)
                   (gen-point 3 1f0)))
-            (dist (gen-one-element #'p:euclidean-dist
-                                   #'p:manhattan-dist
-                                   #'p:chebyshev-dist)))
+            (dist (gen-one-element #'m:euclidean-dist
+                                   #'m:manhattan-dist
+                                   #'m:chebyshev-dist)))
     (let* ((graph (nn:nndescent!
-                   #'p:euclidean-dist
-                   set (rf:initial-approximation dist set 30) 30))
+                   dist set (rf:initial-approximation dist set 30) 30))
            (approx (nn:knn dist set qs graph 2))
            (exact  (n:knn  dist set qs 2)))
       (is (< (loop for e across approx
