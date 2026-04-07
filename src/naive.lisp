@@ -22,7 +22,7 @@ is an exact and brute-force \\(O(n^2)\\) algorithm."
                    for d = (funcall dist p %p)
                    unless (eq p %p) do
                      (q:enqueue-limited! q idx (- d) k))
-             (q:to-sorted-list q))))
+             (q:to-sorted-list! q))))
     (lparallel:pmap 'vector #'knn-list ps)))
 
 (serapeum:-> knn-single (m:dist simple-vector t a:positive-fixnum)
@@ -33,7 +33,7 @@ is an exact and brute-force \\(O(n^2)\\) algorithm."
     (loop for %p across ps
           for d = (funcall dist p %p) do
             (q:enqueue-limited! q %p (- d) k))
-    (q:to-sorted-list q)))
+    (q:to-sorted-list! q)))
 
 (serapeum:-> knn (m:dist simple-vector simple-vector a:positive-fixnum)
              (values simple-vector &optional))

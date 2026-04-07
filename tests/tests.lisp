@@ -127,7 +127,7 @@
           (exact  (n:knn-graph #'m:euclidean-dist ps 30)))
       (flet ((dequeue (q)
                (mapcar #'g:pgen-point
-                       (q:to-sorted-list q))))
+                       (q:to-sorted-list! q))))
         (is (< (loop for a across approx
                      for e across exact
                      count (< (diversion-index

@@ -7,7 +7,7 @@
   (:export #:queue #:make-queue #:copy-queue
            #:enqueue! #:enqueue-limited! #:in-queue-p
            #:dequeue! #:peek #:size #:map-into! #:do-queue
-           #:to-sorted-list #:with-queue-lock
+           #:to-sorted-list! #:with-queue-lock
            #:queue-size-limit-reached
            #:queue-size-limit-reached-queue #:queue-size-limit-reached-object))
 (in-package #:nndescent/pqueue)
@@ -196,11 +196,12 @@ return @c((values nil nil))."
   (declare (optimize (speed 3) (space 0)))
   (find object (%data-vector queue) :test #'eq :key key :end (%size queue)))
 
-(serapeum:-> to-sorted-list (queue &optional (function (t) (values t &optional)))
+(serapeum:-> to-sorted-list! (queue &optional (function (t) (values t &optional)))
              (values list &optional))
-(defun to-sorted-list (q &optional (key #'identity))
+(defun to-sorted-list! (q &optional (key #'identity))
   "Return a list of elements in the queue, sorted by priority. The
-element with the highest priority comes first."
+element with the highest priority comes first. The queue is
+destructively modified in the process."
   (declare (optimize (speed 3)))
   (let ((q (copy-queue q)) acc)
     (loop for obj = (dequeue! q)

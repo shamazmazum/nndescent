@@ -101,7 +101,7 @@
       (values
        (map 'vector
             (lambda (q)
-              (q:to-sorted-list q #'g:pgen-point))
+              (q:to-sorted-list! q #'g:pgen-point))
             approx)
        gens updates))))
 
@@ -151,7 +151,7 @@ of graph updates at the last iterations."
              (best-dist  (funcall dist (svref ps best-point) p)))
         (q:enqueue-limited! q (g:seen best-point nil) (- best-dist) k)
         (%go!)))
-    (q:to-sorted-list
+    (q:to-sorted-list!
      q (lambda (seen)
          (svref ps (g:seen-point seen))))))
 
