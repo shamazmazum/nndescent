@@ -2,7 +2,7 @@
    @title(Overview)
    @c(nndescent) is an algorithm for approximate k-NN searches. Although I
    wanted to make a replacement for pynndescent @strike(and failed) (UPD: nope,
-   this implementation has accuracy comparable to nndescent's), this
+   this implementation has accuracy comparable to pynndescent's), this
    implementation is still good for low dimensionality. Look at this plot:
    @image[src=correctness.png]()
    As you can see, the accuracy is more than 90% for dimensionality up to 6, and
