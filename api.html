@@ -42,7 +42,7 @@
   <h1 class="doc-title">nndescent approximate k-NN search algorithm</h1>
   <article id="article" data-section="api">
     <aside>
-      <ol class="toc"><li><a href="index.html" data-node="index">Overview</a></li><li><a href="how-to-use.html" data-node="how-to-use">How to use</a></li><li><a href="api.html" data-node="api">API</a><ol><li><a href="api.html#common-metrics" data-node="common-metrics">Common metrics</a></li><li><a href="api.html#random-forest" data-node="random-forest">Random forest</a></li><li><a href="api.html#nndescent" data-node="nndescent">nndescent</a></li><li><a href="api.html#brute-force-algorithm" data-node="brute-force-algorithm">Brute-force algorithm</a></li></ol></li></ol>
+      <ol class="toc"><li><a href="index.html" data-node="index">Overview</a></li><li><a href="how-to-use.html" data-node="how-to-use">How to use</a></li><li><a href="specialization.html" data-node="specialization">Specialization</a></li><li><a href="api.html" data-node="api">API</a><ol><li><a href="api.html#common-metrics" data-node="common-metrics">Common metrics</a></li><li><a href="api.html#random-forest" data-node="random-forest">Random forest</a></li><li><a href="api.html#nndescent" data-node="nndescent">nndescent</a></li><li><a href="api.html#brute-force-algorithm" data-node="brute-force-algorithm">Brute-force algorithm</a></li></ol></li></ol>
     </aside>
     <main class="codex-section">
       <header>
@@ -51,10 +51,11 @@
       <div class="content">
         
    <h1 id="common-metrics">Common metrics</h1>
-       Package <code>nndescent/point</code>
+       Package <code>nndescent/metrics</code>. These metrics are specialized for
+       <code>(simple-array single-float (*))</code> vectors.
        
        <div class="codex-doc-node codex-type"><code class="codex-name">dist</code><code class="codex-type-def">(nil (quote (function (t t) (values (real 0) &amp;optional))))</code><div class="codex-docstring">Similarity metric type</div></div>
-       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">euclidean-dist</code><code class="codex-lambda-list">(x y)</code><div class="codex-docstring"><p>Calculate Euclidean distance for two vectors of single floats.</p><p>\(\rho(x, y) = \sqrt{\sum_k (x_k - y_k)^2}\)</p></div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">euclidean-dist</code><code class="codex-lambda-list">(x y)</code><div class="codex-docstring"><p>Calculate Euclidean distance for two vectors of single floats.</p><p>\(ρ(x, y) = \sqrt{\sum_k (x_k - y_k)^2}\)</p></div></div>
        <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">manhattan-dist</code><code class="codex-lambda-list">(x y)</code><div class="codex-docstring"><p>Calculate Manhattan distance for two vectors of single floats.</p><p>\(\rho(x, y) = \sum_k \lvert x_k - y_k \rvert \)</p></div></div>
        <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">chebyshev-dist</code><code class="codex-lambda-list">(x y)</code><div class="codex-docstring"><p>Calculate Chebyshev distance for two vectors of single floats.</p><p>\(\rho(x, y) = \max_k \lvert x_k - y_k \rvert \)</p></div></div>
      
@@ -77,7 +78,8 @@ result <code>approx</code> is required for this algorithm. Parameters
 <code>max-iterations</code> and <code>min-updates</code> control the termination
 condition of the algorithm, namely the algorithm terminates if the
 number of updates of the graph is less than or equal to
-<code>min-updates</code>.</div></div>
+<code>min-updates</code>. Also return the number of iterations and the number
+of graph updates at the last iterations.</div></div>
        <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">nndescent!</code><code class="codex-lambda-list">(dist ps approx k &amp;key (max-iterations 5) (min-updates 0))</code><div class="codex-docstring">Inplace version of <code>nndescent</code>.</div></div>
        <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">knn</code><code class="codex-lambda-list">(dist ps queries graph k)</code><div class="codex-docstring">For each point \(q\) in the set <code>queries</code> find <code>k</code> points
 from the set <code>ps</code> closest to \(q\) using an approximate algorithm

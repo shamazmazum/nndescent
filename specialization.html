@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>
-  Overview &ndash; nndescent approximate k-NN search algorithm
+  Specialization &ndash; nndescent approximate k-NN search algorithm
 </title>
     <link rel="stylesheet" href="static/style.css"/>
     
@@ -15,7 +15,7 @@
   <style>
    /* Highlight the current top-level TOC item, and hide the TOC of all other items */
 
-   .toc a[data-node="index"] {
+   .toc a[data-node="specialization"] {
        /*color: #AD3108;*/
    }
 
@@ -23,15 +23,15 @@
        display: none;
    }
 
-   .toc li a[data-node="index"] {
+   .toc li a[data-node="specialization"] {
        font-weight: bold;
    }
 
-   .toc li a[data-node="index"] + ol {
+   .toc li a[data-node="specialization"] + ol {
        display: block;
    }
 
-   .toc li a[data-node="index"] + ol li {
+   .toc li a[data-node="specialization"] + ol li {
        margin-left: 10px;
    }
   </style>
@@ -40,33 +40,23 @@
   <body>
     
   <h1 class="doc-title">nndescent approximate k-NN search algorithm</h1>
-  <article id="article" data-section="index">
+  <article id="article" data-section="specialization">
     <aside>
       <ol class="toc"><li><a href="index.html" data-node="index">Overview</a></li><li><a href="how-to-use.html" data-node="how-to-use">How to use</a></li><li><a href="specialization.html" data-node="specialization">Specialization</a></li><li><a href="api.html" data-node="api">API</a><ol><li><a href="common-metrics.html" data-node="common-metrics">Common metrics</a></li><li><a href="random-forest.html" data-node="random-forest">Random forest</a></li><li><a href="nndescent.html" data-node="nndescent">nndescent</a></li><li><a href="brute-force-algorithm.html" data-node="brute-force-algorithm">Brute-force algorithm</a></li></ol></li></ol>
     </aside>
     <main class="codex-section">
       <header>
-        <h2 class="section-title">Overview</h2>
+        <h2 class="section-title">Specialization</h2>
       </header>
       <div class="content">
-        <p>
-   <code>nndescent</code> is an algorithm for approximate k-NN searches. Although I
-   wanted to make a replacement for pynndescent <strike>and failed</strike>(UPD: nope,
-   this implementation has accuracy comparable to nndescent's), this
-   implementation is still good for low dimensionality. Look at this plot:
-   <img src="correctness.png"/>
-   As you can see, the accuracy is more than 90% for dimensionality up to 6, and
-   is about 99,8% for dimensionality equal to 3 (pynndescent works good for much
-   bigger dimensionality).</p><p>   The algorithm gives a significant speed-up compared to a brute-force
-   solution:
-   <img src="exectime.png"/>
-   As you can see, the brute-force algorithm has the complexity \(O(n^2)\) and
-   nndescent is roughly \(O(n)\).</p><p>   Paper:
-   </p><pre><code class=NIL>Dong W., Moses C., Li K. Efficient k-nearest neighbor graph construction for
-generic similarity measures //Proceedings of the 20th international conference
-on World wide web. – 2011. – С. 577-586.
-   </code></pre><p>
-</p>
+        
+   Metric functions provided with nndescent are specialized for simple vectors
+   of single floats, but nndescent can work with any metric which accepts any
+   two values and returns a non-negative real number. When you push
+   <code>:nndescent-single</code> to <code>*features*</code> before compiling nndescent, nndescent
+   expects the metric to return a non-negative single-float value. This
+   specialized build of nndescent is much faster than a default build.
+
       </div>
     </main>
   </article>
