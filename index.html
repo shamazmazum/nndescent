@@ -52,12 +52,11 @@
         <p>
    <code>nndescent</code> is an algorithm for approximate k-NN searches. Although I
    wanted to make a replacement for pynndescent <strike>and failed</strike>(UPD: nope,
-   this implementation has accuracy comparable to nndescent's), this
+   this implementation has accuracy comparable to pynndescent's), this
    implementation is still good for low dimensionality. Look at this plot:
    <img src="correctness.png"/>
    As you can see, the accuracy is more than 90% for dimensionality up to 6, and
-   is about 99,8% for dimensionality equal to 3 (pynndescent works good for much
-   bigger dimensionality).</p><p>   The algorithm gives a significant speed-up compared to a brute-force
+   is about 99,8% for dimensionality equal to 3.</p><p>   The algorithm gives a significant speed-up compared to a brute-force
    solution:
    <img src="exectime.png"/>
    As you can see, the brute-force algorithm has the complexity \(O(n^2)\) and

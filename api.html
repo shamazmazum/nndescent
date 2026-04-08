@@ -66,7 +66,7 @@
        <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">initial-approximation</code><code class="codex-lambda-list">(dist ps k &amp;optional (ntrees 10))</code><div class="codex-docstring">Make an initial approximation for k-NN connectivity graph of a
 point set <code>ps</code>. An optional parameter <code>ntrees</code> controls the number
 of random trees used in the process (the bigger value means more
-accurate result but is slower).</div></div>
+accurate result but the computation is slower).</div></div>
      
    
    <h1 id="nndescent">nndescent</h1>
@@ -77,10 +77,10 @@ according to the metric <code>dist</code>. An initial approximation of the
 result <code>approx</code> is required for this algorithm. Parameters
 <code>max-iterations</code> and <code>min-updates</code> control the termination
 condition of the algorithm, namely the algorithm terminates if the
-number of updates of the graph is less than or equal to
-<code>min-updates</code>. Also return the number of iterations and the number
-of graph updates at the last iterations.</div></div>
-       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">nndescent!</code><code class="codex-lambda-list">(dist ps approx k &amp;key (max-iterations 5) (min-updates 0))</code><div class="codex-docstring">Inplace version of <code>nndescent</code>.</div></div>
+number of updates of the graph on the last iteration is less than or
+equal to <code>min-updates</code>. Also return the number of iterations and the
+number of graph updates at the last iterations (2nd and 3rd values).</div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">nndescent!</code><code class="codex-lambda-list">(dist ps approx k &amp;key (max-iterations 5) (min-updates 0))</code><div class="codex-docstring">Inplace version of <code>nndescent</code>. Destructively modifies <code>approx</code> argument.</div></div>
        <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">knn</code><code class="codex-lambda-list">(dist ps queries graph k)</code><div class="codex-docstring">For each point \(q\) in the set <code>queries</code> find <code>k</code> points
 from the set <code>ps</code> closest to \(q\) using an approximate algorithm
 called nndescent. <code>graph</code> is l-NN connectivity graph for the points
@@ -91,8 +91,8 @@ called nndescent. <code>graph</code> is l-NN connectivity graph for the points
    <h1 id="brute-force-algorithm">Brute-force algorithm</h1>
        Package <code>nndescent/naive</code>
        
-       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">knn-graph</code><code class="codex-lambda-list">(dist ps k)</code><div class="codex-docstring">Make an exact k-NN connectivity graph of a point set <code>ps</code>. This
-is an exact and brute-force \(O(n^2)\) algorithm.</div></div>
+       <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">knn-graph</code><code class="codex-lambda-list">(dist ps k)</code><div class="codex-docstring">Make an exact k-NN connectivity graph for a set of points
+<code>ps</code>. This is an exact and brute-force \(O(n^2)\) algorithm.</div></div>
        <div class="codex-doc-node codex-operator codex-function"><code class="codex-name">knn</code><code class="codex-lambda-list">(dist ps queries k)</code><div class="codex-docstring">For each point \(q\) in the set <code>queries</code> find <code>k</code> points
 from the set <code>ps</code> closest to \(q\). This is an exact and
 brute-force algorithm, \(O(nm)\) where \(n\) and \(m\) is a
