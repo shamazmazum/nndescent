@@ -12,7 +12,12 @@
 (deftype dist ()
   "Similarity metric type"
   '(function (t t)
-    (values (real 0) &optional)))
+    (values
+     #+nndescent-single
+     (single-float 0.0)
+     #-nndescent-single
+     (real 0)
+     &optional)))
 
 ;; Some commonly used metrics
 

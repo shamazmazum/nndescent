@@ -90,6 +90,16 @@ on World wide web. – 2011. – С. 577-586.
 @end(section)
 
 @begin(section)
+   @title(Specialization)
+   Metric functions provided with nndescent are specialized for simple vectors
+   of single floats, but nndescent can work with any metric which accepts any
+   two values and returns a non-negative real number. When you push
+   @c(:nndescent-single) to @c(*features*) before compiling nndescent, nndescent
+   expects the metric to return a non-negative single-float value. This
+   specialized build of nndescent is much faster than a default build.
+@end(section)
+
+@begin(section)
    @title(API)
    @begin(section)
        @title(Common metrics)

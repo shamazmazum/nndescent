@@ -14,7 +14,11 @@
 
 (deftype data-type () 't)
 (deftype data-vector-type () '(simple-array data-type (*)))
-(deftype prio-type () 'real)
+(deftype prio-type ()
+  #+nndescent-single
+  'single-float
+  #-nndescent-single
+  'real)
 (deftype prio-vector-type () '(simple-array prio-type (*)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
