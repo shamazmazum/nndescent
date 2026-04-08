@@ -3,4 +3,5 @@
 [![CI tests](https://github.com/shamazmazum/nndescent/actions/workflows/test.yml/badge.svg)](https://github.com/shamazmazum/nndescent/actions/workflows/test.yml)
 
 Approximate k-NN search algorithm. For documentation and examples visit github
-pages site.
+pages site. Special thanks to Michał "phoe" Herda for damn-fast-priority-queue
+used in this project.
