@@ -1,8 +1,9 @@
 @begin[ref=index](section)
    @title(Overview)
    @c(nndescent) is an algorithm for approximate k-NN searches. Although I
-   wanted to make a replacement for pynndescent and failed, this implementation
-   is still good for low dimensionality. Look at this plot:
+   wanted to make a replacement for pynndescent @strike(and failed) (UPD: nope,
+   this implementation has accuracy comparable to nndescent's), this
+   implementation is still good for low dimensionality. Look at this plot:
    @image[src=correctness.png]()
    As you can see, the accuracy is more than 90% for dimensionality up to 6, and
    is about 99,8% for dimensionality equal to 3 (pynndescent works good for much
@@ -48,7 +49,7 @@ on World wide web. – 2011. – С. 577-586.
  (defparameter *slow*
    (nndescent/naive:knn #'nndescent/metrics:euclidean-dist *ps* *qs* 2)))
    @end(code)
-   This takes approximately 68 seconds of execution time with 6 workers
+   This takes approximately 48 seconds of execution time with 6 workers
    (nndescent is parallelized with lparallel, so don't forget to create a new
    kernel before running nndescent: @c((setq lparallel:*kernel*
    (lparallel:make-kernel 6)))).
@@ -65,7 +66,7 @@ on World wide web. – 2011. – С. 577-586.
      #'nndescent/metrics:euclidean-dist *ps* 30)
     30 :max-iterations 20)))
    @end(code)
-   This takes 6.5 seconds of execution time. At first we do an initial
+   This takes 6 seconds of execution time. At first we do an initial
    approximation of the connectivity graph with @c(initial-approximation) and
    then iteratively improve it with @c(nndescent).
 
@@ -75,8 +76,8 @@ on World wide web. – 2011. – С. 577-586.
  (defparameter *fast*
    (nndescent/nndescent:knn #'nndescent/metrics:euclidean-dist *ps* *qs* *graph* 2)))
    @end(code)
-   This takes 0.9 seconds. So we have approximately 68/(0.9+6.5)=@b(9x) speed-up
-   compared to the brute-force algorithm.
+   This takes 0.6 seconds. So we have approximately 48/(0.6+6)=@b(7x)
+   speed-up compared to the brute-force algorithm.
 
    Now you have learned how to use nndescent and may wonder what requirements it
    imposes on the space your points are in. As I said, unfortunately it does not
