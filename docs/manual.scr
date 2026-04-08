@@ -80,8 +80,8 @@ on World wide web. – 2011. – С. 577-586.
 
    Now you have learned how to use nndescent and may wonder what requirements it
    imposes on the space your points are in. As I said, unfortunately it does not
-   work good with big dimensionalities (at least yet), but virtually there is no
-   more restrictions. For example, your metric can violate metric axioms, for
+   work good with big dimensionalities, but virtually there is no more
+   restrictions. For example, your metric can violate metric axioms, for
    example, the third axiom (the triangle inequality), so the squared Euclidean
    metric is also good enough for nndescent. Generally speaking, the triangle
    inequality is replaced by a vastly formulated requirement: if \(\rho(a,b)\)

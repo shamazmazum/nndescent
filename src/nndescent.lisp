@@ -85,7 +85,7 @@
                          (:min-updates    a:non-negative-fixnum))
              (values simple-vector g:iterations (integer 0) &optional))
 (defun nndescent! (dist ps approx k &key (max-iterations 5) (min-updates 0))
-  "Inplace version of @c(nndescent)."
+  "Inplace version of @c(nndescent). Destructively modifies @c(approx) argument."
   (declare (optimize (speed 3)))
   (assert (= (length ps) (length approx)))
   (labels ((%go (gen updates)
@@ -115,9 +115,9 @@ according to the metric @c(dist). An initial approximation of the
 result @c(approx) is required for this algorithm. Parameters
 @c(max-iterations) and @c(min-updates) control the termination
 condition of the algorithm, namely the algorithm terminates if the
-number of updates of the graph is less than or equal to
-@c(min-updates). Also return the number of iterations and the number
-of graph updates at the last iterations."
+number of updates of the graph on the last iteration is less than or
+equal to @c(min-updates). Also return the number of iterations and the
+number of graph updates at the last iterations (2nd and 3rd values)."
   (nndescent! dist ps (map 'vector #'q:copy-queue approx) k
               :max-iterations max-iterations
               :min-updates    min-updates))

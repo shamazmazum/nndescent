@@ -40,7 +40,7 @@
   "Make an initial approximation for k-NN connectivity graph of a
 point set @c(ps). An optional parameter @c(ntrees) controls the number
 of random trees used in the process (the bigger value means more
-accurate result but is slower)."
+accurate result but the computation is slower)."
   (declare (optimize (speed 3)))
   (let ((forest (make-random-forest ps dist (floor (* k 1.5)) ntrees))
         (dist (dist ps dist)))

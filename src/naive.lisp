@@ -12,8 +12,8 @@
 (serapeum:-> knn-graph (m:dist simple-vector a:positive-fixnum)
              (values simple-vector &optional))
 (defun knn-graph (dist ps k)
-  "Make an exact k-NN connectivity graph of a point set @c(ps). This
-is an exact and brute-force \\(O(n^2)\\) algorithm."
+  "Make an exact k-NN connectivity graph for a set of points
+@c(ps). This is an exact and brute-force \\(O(n^2)\\) algorithm."
   (declare (optimize (speed 3)))
   (flet ((knn-list (p)
            (let ((q (q:make-queue (1+ k))))
