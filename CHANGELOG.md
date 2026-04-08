@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.2.1
+
+* Improvement: Updated documentation
+
 ## Version 0.2
 
 * Incompatible change: `nndescent/point` package is renamed to

@@ -3,7 +3,7 @@
 
 (defsystem :nndescent
   :name :nndescent
-  :version "0.2"
+  :version "0.2.1"
   :author "Vasily Postnicov <shamaz.mazum@gmail.com>"
   :description "Approximate algorithm for solving k-NN problem"
   :licence "2-clause BSD"
