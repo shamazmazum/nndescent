@@ -6,8 +6,7 @@
    implementation is still good for low dimensionality. Look at this plot:
    @image[src=correctness.png]()
    As you can see, the accuracy is more than 90% for dimensionality up to 6, and
-   is about 99,8% for dimensionality equal to 3 (pynndescent works good for much
-   bigger dimensionality).
+   is about 99,8% for dimensionality equal to 3.
 
    The algorithm gives a significant speed-up compared to a brute-force
    solution:
