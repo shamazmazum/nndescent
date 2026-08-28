@@ -207,7 +207,7 @@ return @c((values nil nil))."
 element with the highest priority comes first. The queue is
 destructively modified in the process."
   (declare (optimize (speed 3)))
-  (let ((q (copy-queue q)) acc)
+  (let (acc)
     (loop for obj = (dequeue! q)
           while obj
           do (push (funcall key obj) acc))
