@@ -54,6 +54,9 @@ accurate result but the computation is slower)."
                                         (q:in-queue-p q %idx :key #'g:pgen-point))
                                do (q:enqueue-limited! q (g:pgen %idx 0) (- d) k)))
                q)))
-      (let ((qs (loop for i below (length ps)
-                      collect (let ((i i)) (lparallel:future (make-queue i))))))
-        (map 'vector #'lparallel:force qs)))))
+      (let ((qs (make-array (length ps))))
+        (loop for i below (length ps) do
+          (setf (svref qs i)
+                (let ((i i))
+                  (lparallel:future (make-queue i)))))
+        (map-into qs #'lparallel:force qs)))))
